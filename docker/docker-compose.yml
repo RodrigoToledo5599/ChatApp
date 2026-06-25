@@ -1,0 +1,22 @@
+services:
+  mongodb:
+    container_name: mongodb-chat-app
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+
+  db:
+    container_name: db
+    image: postgres:18.4
+    environment:
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: postgres-chat-app
+    ports:
+      - 5432:5432
+
+  redis:
+    container_name: redis
+    image: redis
+    command: redis-server --appendonly yes --stop-writes-on-bgsave-error no
+    ports:
+      - '6379:6379'

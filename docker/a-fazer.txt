@@ -1,0 +1,7 @@
+login - ok
+
+0 - create-account
+1 - search-user-by-name, search-user-by-email, add-user, list-friends,list-pending-friendship-from-user ,list-pending-friendship-to-user,
+2 - list-conversations,create-a-conversation (vamos pular essa funcionalidade de grupos por enquanto), create-a-conversartion-with-user
+3 - get the conversation on mongo listing the last 100 messages and being able to query 100 by hundred messages when you scroll upwards
+4 - caching friendlist on redis (48 hours) heavy query that's gotta be executed few times

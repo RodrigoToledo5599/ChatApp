@@ -1,0 +1,66 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+
+model Users {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  phone     String   @unique
+  password  String
+  refresh   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  sentFriendships     Friendship[]           @relation("SentFriendships")
+  receivedFriendships Friendship[]           @relation("ReceivedFriendships")
+  
+  conversations       UsersOnConversations[]
+}
+
+model Friendship {
+  id         String           @id @default(uuid())
+  senderId   String
+  receiverId String
+  status     FriendshipStatus @default(PENDING)
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+
+  sender   Users @relation("SentFriendships", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver Users @relation("ReceivedFriendships", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  @@unique([senderId, receiverId])
+}
+
+model Conversations {
+  id        String     @id @default(uuid())
+  title     String? 
+  isGroup   Boolean    @default(false)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  users     UsersOnConversations[]
+}
+
+model UsersOnConversations {
+  userId         String
+  conversationId String
+  joinedAt       DateTime @default(now())
+
+
+  user           Users         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  conversation   Conversations @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@id([userId, conversationId]) 
+}
+
+enum FriendshipStatus {
+  PENDING
+  ACCEPTED
+  BLOCKED
+}
