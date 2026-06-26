@@ -18,7 +18,12 @@ export class GenerateTokenUtils{
             secret: process.env.SECRET_KEY_JWT,
             expiresIn: '15m'
         })
-        const refreshToken = this.jwtServ.sign({...userDto},{
+
+        const refreshPayload = {
+            "id":userDto.id
+        };
+
+        const refreshToken = this.jwtServ.sign({...refreshPayload},{
             secret: process.env.SECRET_KEY_REFRESH_JWT,
             expiresIn: '7d'
         })

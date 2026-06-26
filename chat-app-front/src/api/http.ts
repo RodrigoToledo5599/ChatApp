@@ -26,8 +26,8 @@ http.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    const isAuthRoute = originalRequest.url?.includes('refresh-token') || 
-                        originalRequest.url?.includes('login');
+    const isAuthRoute = originalRequest.url?.includes('auth/refresh-token') || 
+                        originalRequest.url?.includes('auth/login');
 
     if (error.response?.status === 401 && isAuthRoute) {
       return Promise.reject(error);
@@ -52,7 +52,7 @@ http.interceptors.response.use(
 
       try {
         
-        await http.post('/refresh-token');
+        await http.post('auth/refresh-token');
         processQueue(null, "success");
 
         return http(originalRequest);

@@ -4,7 +4,7 @@ import PageDescriptionWithNoConversationSelected from "./page-description-with-n
 import ChatInputMessage from "./chat-input-message"
 import UTCtoNormalVisualDate from "../../../lib/utils"
 
-export function Chat({ conversationId, isGroup }: { conversationId: string, isGroup: boolean }) {
+export function Chat({ conversationId }: { conversationId: string}) {
   const { 
     data, 
     isLoading, 
@@ -52,20 +52,20 @@ export function Chat({ conversationId, isGroup }: { conversationId: string, isGr
               }
               `}
             >
-              <div className={`flex flex-col gap-2
+              <div className={`flex flex-col gap-2 border border-zinc-400
                 ${msg.userId == data!.pages[0].userId ? "bg-green-900":"bg-cyan-950"}
-                  px-5 pt-3  w-[45%] rounded-lg
+                  px-5 pt-3 rounded-3xl
                 `}>
                 <div className="">
                   {msg.content}
                 </div>
-                { isGroup === true?
+                {/* { isGroup === true?
                   <div className="w-full font-bold  flex flex-wrap">
                     {msg.userName}
                   </div>
                   :
                   <div></div>
-                }
+                } */}
                 <div className={`w-full font-bold flex flex-row
                   ${
                     msg.userId == data!.pages[0].userId ? "justify-end":"justify-start"

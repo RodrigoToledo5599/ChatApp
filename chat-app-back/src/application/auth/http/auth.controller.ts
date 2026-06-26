@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Res, Req, UseGuards, Get } from '@nestjs/common';
+import { Body, Controller, Post, Res, Req, UseGuards, Get, UnauthorizedException } from '@nestjs/common';
 import express from 'express';
 import { LoginRequestDto } from './../dto/login-request.dto';
 import { LoginUsecase } from './../usecases/login/login.usecase';
@@ -39,7 +39,7 @@ export class AuthController {
                 httpOnly: true,
                 secure: false,
                 sameSite: 'lax',
-                path: '/refresh-token',
+                path: '/auth/refresh-token',
                 maxAge: 3600000 * 24 * 15 // 15 dias
                 // maxAge: 5000 // 5 segundos
             });
@@ -52,8 +52,10 @@ export class AuthController {
     @ApiOkResponse({type: RefreshTokenDto})
     @Post('refresh-token')
     async refreshToken(@Req() request: express.Request, @Res({ passthrough: true }) res: express.Response) : Promise<RefreshTokenDto> {
-        const refreshToken = request.cookies["refreshToken"]
-
+        const refreshToken = request.headers.cookie?.split('=')[1]
+        if(!refreshToken)
+            throw new UnauthorizedException('Credencias Inválidas');
+        
         var result = await this.tokenRefreshUseCase.execute(refreshToken)
         if(result){
             res.cookie('accessToken', result.access_token, {

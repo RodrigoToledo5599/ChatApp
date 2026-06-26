@@ -16,8 +16,8 @@ type ConversationProps = {
 export function ConversationsMenu(props: ConversationProps) {
 
   return (
-    <aside className="flex h-full w-full flex-col border-r border-zinc-800/80 bg-zinc-950 md:w-96 md:shrink-0 relative">
-      
+    <div className="flex h-full w-full flex-col border-r border-zinc-800/80 bg-zinc-950 md:w-96 md:shrink-0 relative">
+
       <ConversationsMenuHeader currentUser={props.currentUser}/>
 
       <div className="px-4 pt-4 pb-2 space-y-3">
@@ -52,6 +52,6 @@ export function ConversationsMenu(props: ConversationProps) {
 
       <ConversationsMenuBottombar/>
       
-    </aside>
+    </div>
   )
 }
