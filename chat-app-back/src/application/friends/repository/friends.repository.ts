@@ -36,7 +36,6 @@ export class FriendsRepository {
     async listFriends(userId: string): Promise<FriendshipWithUsers[] | null> {
         return await this.prisma.friendship.findMany({
             where: {
-                status: FriendshipStatus.ACCEPTED,
                 OR: [
                     { senderId: userId },
                     { receiverId: userId }
@@ -61,6 +60,21 @@ export class FriendsRepository {
                 status: FriendshipStatus.PENDING
             }
         })
+    }
 
+    async findFriendShipRequest(friendShipRequestId:string){
+        return await this.prisma.friendship.findUnique({
+            where:{
+                id: friendShipRequestId
+            }
+        })
+    }
+
+    async deleteFriendShip(friendShipRequestId:string){
+        return await this.prisma.friendship.delete({
+            where:{
+                id: friendShipRequestId
+            }
+        })
     }
 }

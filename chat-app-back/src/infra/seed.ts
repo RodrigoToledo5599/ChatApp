@@ -67,11 +67,11 @@ async function main() {
         { senderId: id_users.rodrigo, receiverId: id_users.jonatas, status: FriendshipStatus.ACCEPTED },
         { senderId: id_users.rodrigo, receiverId: id_users.mariana, status: FriendshipStatus.PENDING },
         { senderId: id_users.amanda, receiverId: id_users.rodrigo, status: FriendshipStatus.ACCEPTED },
-        { senderId: id_users.mariana, receiverId: id_users.rodrigo, status: FriendshipStatus.ACCEPTED },
         { senderId: id_users.rodrigo, receiverId: id_users.thiago, status: FriendshipStatus.ACCEPTED },
         { senderId: id_users.jonatas, receiverId: id_users.carlos, status: FriendshipStatus.ACCEPTED },
         { senderId: id_users.mariana, receiverId: id_users.beatriz, status: FriendshipStatus.ACCEPTED },
         { senderId: id_users.thiago, receiverId: id_users.amanda, status: FriendshipStatus.PENDING },
+        { senderId: id_users.beatriz, receiverId: id_users.rodrigo, status: FriendshipStatus.PENDING },
         { senderId: id_users.carlos, receiverId: id_users.thiago, status: FriendshipStatus.BLOCKED },
     ];
 
