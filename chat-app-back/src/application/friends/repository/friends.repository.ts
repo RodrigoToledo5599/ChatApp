@@ -77,4 +77,11 @@ export class FriendsRepository {
             }
         })
     }
+
+    async acceptFriendShipRequest(friendShipRequesId:string){
+        return await this.prisma.friendship.update({
+            where: { id: friendShipRequesId },
+            data: {status: FriendshipStatus.ACCEPTED }
+        })
+    }
 }

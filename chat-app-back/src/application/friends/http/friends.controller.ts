@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Delete, Get, InternalServerErrorException, Post, UseGuards } from "@nestjs/common";
+import { BadRequestException, Body, Controller, Delete, Get, InternalServerErrorException, Param, Patch, Post, UseGuards } from "@nestjs/common";
 import { AuthGuard } from "../../../middleware/guards/auth.guard";
 import { User } from "../../../middleware/decorators/user.decorator";
 import { AddFriendUsecase } from "../usecases/add-friend.usecase";
@@ -6,6 +6,7 @@ import { ListFriendsUsecase } from "../usecases/list-friends.usecase";
 import { FriendShipDeleteRequestDto, FriendShipDto } from "../dto/friendship.dto";
 import { CreatedFriendShipDto } from "../dto/created-friendship.dto";
 import { DeleteFriendshipRequestUsecase } from "../usecases/delete-friendship-request.usecase";
+import { AcceptOrRefuseFriendshiptUsecase } from "../usecases/accept-or-refuse-friendship.usecase";
 
 
 @UseGuards(AuthGuard)
@@ -14,7 +15,8 @@ export class FriendsController{
     constructor(
         private readonly addFriendsUsecase: AddFriendUsecase,
         private readonly listFriendsUsecase: ListFriendsUsecase,
-        private readonly deleteFriendshipUsecase : DeleteFriendshipRequestUsecase
+        private readonly deleteFriendshipUsecase: DeleteFriendshipRequestUsecase,
+        private readonly acceptOrRefuseFriendshipUsecase: AcceptOrRefuseFriendshiptUsecase
     ){}
 
     @Post('')
@@ -34,13 +36,29 @@ export class FriendsController{
         return await this.listFriendsUsecase.execute(user.id)
     }
 
-    @Delete('')
+    @Delete(':friendshipId')
     async deleteFriendShipRequest(
         @User() user,
-        @Body() body?: FriendShipDeleteRequestDto
+        @Param('friendshipId') friendshipId: string
     ){
-        if(!body || !body?.friendshipId)
+        if(!friendshipId)
             throw new BadRequestException('passe os parametros corretos');
-        return await this.deleteFriendshipUsecase.execute(user.id, body.friendshipId)
+        return await this.deleteFriendshipUsecase.execute(user.id, friendshipId)
+    }
+
+    @Patch('accept/:friendshipId')
+    async acceptFriendshipRequest(
+        @User() user,
+        @Param() friendshipId: string
+    ){
+        return await this.acceptOrRefuseFriendshipUsecase.execute(user.id,friendshipId,true);
+    }
+
+    @Delete('refuse/:friendshipId')
+    async refuseFriendshipRequest(
+        @User() user,
+        @Param() friendshipId:string ,
+    ){
+        return await this.acceptOrRefuseFriendshipUsecase.execute(user.id,friendshipId,false);
     }
 }   

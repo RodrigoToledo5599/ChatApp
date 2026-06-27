@@ -17,9 +17,14 @@ export const friendshipService = {
     },
 
     deleteFriendshipRequest: async (friendshipId: string) => {
-        const {data} = await http.delete(ENDPOINT,{
-            data: {friendshipId: friendshipId}
-        } );
-        return data
+        const { data } = await http.delete(`${ENDPOINT}/${friendshipId}`);
+        return data;
+    },
+
+    useAcceptOrRefuseFriendshipRequest: async (friendshipId: string, accepted :boolean) => {
+        return accepted === true ? 
+            await http.patch(`${ENDPOINT}/accept/${friendshipId}`)
+            :
+            await http.delete(`${ENDPOINT}/refuse/${friendshipId}`)
     }
 }

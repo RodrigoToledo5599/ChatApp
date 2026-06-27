@@ -37,3 +37,29 @@ export function useDeleteFriendshipRequest(){
 }
 
 
+interface AcceptOrRefuseFriendshipRequestSend {
+    friendshipId: string,
+    accepted: boolean
+}
+
+export function useAcceptOrRefuseFriendshipRequest(){
+    const queryClient = useQueryClient()
+
+    return useMutation({
+        mutationFn: (params: AcceptOrRefuseFriendshipRequestSend) =>{
+            const data = friendshipService.useAcceptOrRefuseFriendshipRequest(params.friendshipId, params.accepted)
+            return data
+        }, 
+            
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: [TanStackKeys.friends]})
+            toast.info("Amizade recusada") 
+        },
+        onError: (error) => {
+           console.error("Erro ao cancelar solicitação:", error)
+           toast.error("erro ao se comunicar com o servidor")
+        }
+    })
+}
+
+

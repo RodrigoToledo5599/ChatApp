@@ -4,7 +4,7 @@
 [x] 1 - desfazer pedido de amizade feito (se desfizer vai ter que remover do banco)
 
 (fácil)
-[] 2 - aceitar ou recusar pedidos de outras pessoas 
+[x] 2 - aceitar ou recusar pedidos de outras pessoas 
     (se recusar vai desfazer também do banco e se aceitar apenas sai de pending para accepted)
 
 (fácil)

@@ -1,6 +1,6 @@
 import { Check, Undo2, X } from "lucide-react"
 import type { FriendDto } from "../../../lib/types/friendship.types"
-import { useDeleteFriendshipRequest } from "../../../hooks/useFriendship"
+import { useAcceptOrRefuseFriendshipRequest, useDeleteFriendshipRequest } from "../../../hooks/useFriendship"
 
 
 type FriendsContainerProps = {
@@ -24,7 +24,7 @@ type FriendsContainerPropsToMe = {
 }
 
 function PendingFriendshipSolicitationsFromMe(data : FriendsContainerPropsFromMe){
-    const {mutate: deleteRequest, isPending} = useDeleteFriendshipRequest() 
+    const {mutate: deleteRequest, isPending} = useDeleteFriendshipRequest()
     return (
         <div>
             <h2>Minhas solicitações</h2>
@@ -68,6 +68,7 @@ function PendingFriendshipSolicitationsFromMe(data : FriendsContainerPropsFromMe
 
 
 function PendingFriendshipSolicitationsToMe(data : FriendsContainerPropsToMe){
+    const {mutate: acceptOrDeleteFriendship} = useAcceptOrRefuseFriendshipRequest()
     return (
         <div>
             <h2>Solicitações enviadas para mim</h2>
@@ -94,13 +95,21 @@ function PendingFriendshipSolicitationsToMe(data : FriendsContainerPropsToMe){
 
                         <div className="flex items-center gap-2 opacity-80 group-hover:opacity-100 transition-opacity">
                             <button 
+                                onClick={() => acceptOrDeleteFriendship({
+                                    friendshipId: friend.id,
+                                    accepted: true
+                                })}
                                 title="Aceitar pedido de amizade"
                                 className="p-2.5 bg-zinc-950 border border-zinc-850 text-zinc-400 rounded-xl transition-all
                                     hover:bg-emerald-600/10 hover:border-emerald-500/20 hover:text-emerald-400 "
                             >
                                 <Check className="w-5 h-5" />
                             </button>
-                            <button 
+                            <button
+                                onClick={() => acceptOrDeleteFriendship({
+                                    friendshipId: friend.id,
+                                    accepted: false
+                                })} 
                                 title="Recusar pedido de amizade"
                                 className="p-2.5 bg-zinc-950 border border-zinc-850 text-zinc-400 rounded-xl transition-all 
                                     hover:bg-red-500/20 hover:text-red-400 hover:border-red-400 "
