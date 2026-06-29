@@ -11,7 +11,7 @@
 [x] 3 - bloquear amizades (no caso eu apenas não filtrarei esses por enquanto)
 
 (trabalhoso porém fácil)
-[] 4 - parte de criar conta não tinha sido feita anteriormente
+[x] 4 - parte de criar conta não tinha sido feita anteriormente
 
 (parte de redirecionar pro chat no front pode ser chata e ter necessidade de algumas refatorações)
 [] 5 - conversar com amigo. Clica no botão de texto, se não tiver um conversation entre eles, cria 1, 

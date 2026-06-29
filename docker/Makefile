@@ -3,11 +3,11 @@ prisma-generate:
 	cd ../chat-app-back && npm run prisma:postgres:generate
 
 up-db:
-# 	docker compose up db -d
+	docker compose up db -d
 	docker compose up mongodb -d
 
 down-db:
-# 	docker compose down db
+	docker compose down db
 	docker compose down mongodb
 
 create-migrations:

@@ -15,7 +15,7 @@ export class CreateAccountUsecase{
         private accountRepo: AccountRepository
     ){}
 
-    async execute(data: AccountCreateResponseDto) : Promise<AccountCreateRequestDto>{
+    async execute(data: AccountCreateRequestDto) : Promise<AccountCreateRequestDto>{
         if(!data.email || !data.name || !data.password)
             throw new BadRequestException("Preencha todos os campos obrigatórios")
 

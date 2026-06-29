@@ -2,24 +2,49 @@
 
 import { useNavigate } from "react-router-dom"
 import { type FormEvent, useState } from "react"
+import { z } from "zod";
 import { toast } from "sonner"
 import { FormInputField } from "../../components/FormInputField"
 import type { LoginParams } from "../../lib/types/auth.types"
 import axios from "axios"
 import { useLogin } from "../../hooks/useAuth"
-import { LockKeyhole, MessageSquareCode, ArrowRight } from "lucide-react"
+import { MessageSquareCode, ArrowRight } from "lucide-react"
 
 export function LoginPage() {
   const { mutateAsync: login, isPending } = useLogin()
   const router = useNavigate()
   const [form, setForm] = useState({ email: "", password: "" })
 
+
+  const [errors, setErrors] = useState<Record<string, string>>({})
+    
+  const createAccountSchema = z.object({      
+    email: z
+      .string()
+      .min(1, "O e-mail é obrigatório"),
+      
+    password: z
+      .string()
+      .min(1, "A senha é obrigatória"),
+
+  })
+
   const handleLogin = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     
-    if (!form.email || !form.password) {
-      toast.error("Preencha todos os campos!")
-      return
+    const validation = createAccountSchema.safeParse(form)
+
+    if (!validation.success) {
+      const formattedErrors: Record<string, string> = {}
+      
+      validation.error.issues.forEach((err) => {
+        if (err.path[0]) {
+          formattedErrors[err.path[0].toString()] = err.message
+        }
+      })
+
+      setErrors(formattedErrors)
+      return 
     }
 
     try {
@@ -43,7 +68,6 @@ export function LoginPage() {
     <div className="min-h-screen flex items-center justify-center p-4 bg-zinc-950 text-zinc-100 antialiased font-sans">
       <div className="w-full max-w-md space-y-8">
         
-        {/* LOGO E TOPO */}
         <div className="flex flex-col items-center text-center">
           <div className="p-3 bg-emerald-500/10 text-emerald-400 rounded-2xl border border-emerald-500/10 mb-4 shadow-lg shadow-emerald-500/5">
             <MessageSquareCode className="w-8 h-8" />
@@ -52,11 +76,9 @@ export function LoginPage() {
           <p className="text-zinc-400 text-sm mt-1.5">Entre com sua conta para acessar seus chats</p>
         </div>
 
-        {/* CARD DE LOGIN (Estilo Vidro Fumê) */}
         <div className="bg-zinc-900/40 border border-zinc-800/80 rounded-2xl p-8 backdrop-blur-md shadow-2xl">
           <form onSubmit={handleLogin} className="flex flex-col gap-5">
             
-            {/* Note: Certifique-se de que o FormInputField aceita classes customizadas de texto claro, ou ajuste as labels dele para text-zinc-300 */}
             <div className="space-y-1">
               <FormInputField
                 id="email"
@@ -65,6 +87,7 @@ export function LoginPage() {
                 value={form.email}
                 onChange={(text) => setForm({ ...form, email: text })}
                 placeholder="seu@email.com"
+                error={errors.email}
               />
             </div>
             
@@ -76,11 +99,12 @@ export function LoginPage() {
                 value={form.password}
                 onChange={(text) => setForm({ ...form, password: text })}
                 placeholder="••••••••"
+                error={errors.password}
               />
             </div>
             
-            {/* LEMBRAR / ESQUECEU A SENHA */}
-            <div className="flex items-center justify-between text-xs py-1">
+            {/* POR ENQUANTO NÃO  */}
+            {/* <div className="flex items-center justify-between text-xs py-1">
               <label className="flex items-center gap-2 cursor-pointer select-none text-zinc-400 hover:text-zinc-300 transition-colors">
                 <input
                   id="remember"
@@ -92,9 +116,8 @@ export function LoginPage() {
               <a href="#" className="font-semibold text-emerald-400 hover:text-emerald-300 hover:underline transition-colors">
                 Esqueceu a senha?
               </a>
-            </div>
+            </div> */}
 
-            {/* BOTÃO SUBMIT */}
             <button
               type="submit"
               disabled={isPending}
@@ -118,20 +141,10 @@ export function LoginPage() {
         <div className="flex flex-col items-center gap-3 text-sm pt-2">
           <p className="text-zinc-400">
             Não tem uma conta?{" "}
-            <a href="/cadastrar" className="text-emerald-400 hover:text-emerald-300 font-semibold transition-colors">
+            <a href="/create-account" className="text-emerald-400 hover:text-emerald-300 font-semibold transition-colors">
               Cadastre-se grátis
             </a>
           </p>
-          
-          <div className="w-12 h-px bg-zinc-800 my-1" />
-
-          <a 
-            href="/cadastrar-seller" 
-            className="flex items-center gap-2 text-xs text-zinc-500 hover:text-zinc-300 transition-colors bg-zinc-900/30 px-3 py-1.5 border border-zinc-800/40 rounded-full"
-          >
-            <LockKeyhole className="w-3 h-3" />
-            Acesso profissional / Vendedor
-          </a>
         </div>
       
       </div>

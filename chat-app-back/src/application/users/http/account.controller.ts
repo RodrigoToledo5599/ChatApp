@@ -16,7 +16,7 @@ export class AccountController{
     ){}
 
     @Post()
-    async createAccount(@Body() data: AccountCreateResponseDto): Promise<AccountCreateRequestDto>{
+    async createAccount(@Body() data: AccountCreateRequestDto): Promise<AccountCreateRequestDto>{
         return await this.createAccountUseCase.execute(data)
     }
 
