@@ -53,7 +53,6 @@ export function useAcceptOrRefuseFriendshipRequest(){
             
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: [TanStackKeys.friends]})
-            toast.info("Amizade recusada") 
         },
         onError: (error) => {
            console.error("Erro ao cancelar solicitação:", error)
@@ -61,5 +60,26 @@ export function useAcceptOrRefuseFriendshipRequest(){
         }
     })
 }
+
+
+export function useBlockFriendRequest(){
+    const queryClient = useQueryClient()
+
+    return useMutation({
+        mutationFn: (friendshipId: string) =>{
+            const data = friendshipService.blockFriendRequest(friendshipId)
+            return data
+        }, 
+            
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: [TanStackKeys.friends]})
+        },
+        onError: (error) => {
+           console.error("Erro ao cancelar solicitação:", error)
+           toast.error("erro ao se comunicar com o servidor")
+        }
+    })
+}
+
 
 

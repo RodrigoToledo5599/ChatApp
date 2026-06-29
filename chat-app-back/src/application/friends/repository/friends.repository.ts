@@ -84,4 +84,11 @@ export class FriendsRepository {
             data: {status: FriendshipStatus.ACCEPTED }
         })
     }
+
+    async blockFriend(friendShipRequesId:string){
+        return await this.prisma.friendship.update({
+            where: { id: friendShipRequesId },
+            data: {status: FriendshipStatus.BLOCKED }
+        })
+    }
 }

@@ -1,6 +1,7 @@
-import { MessageSquare, MoreVertical } from "lucide-react"
+import { Ban, Blocks, MessageSquare, MoreVertical } from "lucide-react"
 import type { FriendDto } from "../../../lib/types/friendship.types"
 import FriendshipSolicitationsContainer from "./friendship-solicitations-container"
+import { useBlockFriendRequest } from "../../../hooks/useFriendship"
 
 
 export function FriendsContainerLoadingSkeleton(){
@@ -24,9 +25,6 @@ export function FriendsContainerLoadingSkeleton(){
     )
 }
 
-
-
-
 type FriendsContainerProps = {
     listedFriends? : FriendDto[]
     filteredPendingFriendshipSolicitationsFromMe?: FriendDto[]
@@ -36,6 +34,7 @@ type FriendsContainerProps = {
 }
 
 export default function FriendsContainer(data : FriendsContainerProps){
+    const {mutate: blockFriend} = useBlockFriendRequest()
     return (
         <div className="flex-1 overflow-y-auto p-6 space-y-2 custom-scrollbar">
           {data.isLoading ? (
@@ -73,10 +72,14 @@ export default function FriendsContainer(data : FriendsContainerProps){
                       <MessageSquare className="w-5 h-5" />
                     </button>
                     <button 
-                      title="Mais opções"
-                      className="p-2.5 bg-zinc-950 border border-zinc-850 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 rounded-xl transition-all"
+                      onClick={() => blockFriend(friend.id)}
+                      title="Bloquear usuário"
+                      className="p-2.5 bg-zinc-950 border border-zinc-850 text-zinc-400 rounded-xl transition-all
+                      hover:bg-red-500/20 hover:text-red-400 hover:border-red-400
+                      "
                     >
-                      <MoreVertical className="w-5 h-5" />
+                      <Ban className="w-5 h-5 font-red-400
+                        hover:bg-red-500/20 hover:text-red-400 hover:border-red-400" />
                     </button>
                   </div>
                 </div>

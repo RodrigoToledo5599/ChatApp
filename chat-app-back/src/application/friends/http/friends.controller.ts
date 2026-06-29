@@ -3,10 +3,11 @@ import { AuthGuard } from "../../../middleware/guards/auth.guard";
 import { User } from "../../../middleware/decorators/user.decorator";
 import { AddFriendUsecase } from "../usecases/add-friend.usecase";
 import { ListFriendsUsecase } from "../usecases/list-friends.usecase";
-import { FriendShipDeleteRequestDto, FriendShipDto } from "../dto/friendship.dto";
+import { FriendShipDto } from "../dto/friendship.dto";
 import { CreatedFriendShipDto } from "../dto/created-friendship.dto";
 import { DeleteFriendshipRequestUsecase } from "../usecases/delete-friendship-request.usecase";
 import { AcceptOrRefuseFriendshiptUsecase } from "../usecases/accept-or-refuse-friendship.usecase";
+import { BlockFriendUsecase } from "../usecases/block-friend-usecase";
 
 
 @UseGuards(AuthGuard)
@@ -16,7 +17,8 @@ export class FriendsController{
         private readonly addFriendsUsecase: AddFriendUsecase,
         private readonly listFriendsUsecase: ListFriendsUsecase,
         private readonly deleteFriendshipUsecase: DeleteFriendshipRequestUsecase,
-        private readonly acceptOrRefuseFriendshipUsecase: AcceptOrRefuseFriendshiptUsecase
+        private readonly acceptOrRefuseFriendshipUsecase: AcceptOrRefuseFriendshiptUsecase,
+        private readonly blockAFriendUsecase: BlockFriendUsecase
     ){}
 
     @Post('')
@@ -61,4 +63,15 @@ export class FriendsController{
     ){
         return await this.acceptOrRefuseFriendshipUsecase.execute(user.id,friendshipId,false);
     }
+
+    @Patch('block/:friendshipId')
+    async BlockFriend(
+        @User() user,
+        @Param() friendshipId: string
+    ){
+        if(!friendshipId)
+            throw new BadRequestException('passe os parametros corretos');
+        return await this.blockAFriendUsecase.execute(user.id,friendshipId);
+    }
+
 }   

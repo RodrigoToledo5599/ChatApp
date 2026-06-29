@@ -26,5 +26,10 @@ export const friendshipService = {
             await http.patch(`${ENDPOINT}/accept/${friendshipId}`)
             :
             await http.delete(`${ENDPOINT}/refuse/${friendshipId}`)
+    },
+
+    blockFriendRequest: async (friendshipId: string) => {
+        const { data } = await http.patch(`${ENDPOINT}/block/${friendshipId}`)
+        return data
     }
 }

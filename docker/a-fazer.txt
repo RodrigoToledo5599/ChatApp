@@ -8,7 +8,7 @@
     (se recusar vai desfazer também do banco e se aceitar apenas sai de pending para accepted)
 
 (fácil)
-[] 3 - bloquear amizades (no caso eu apenas não filtrarei esses por enquanto)
+[x] 3 - bloquear amizades (no caso eu apenas não filtrarei esses por enquanto)
 
 (trabalhoso porém fácil)
 [] 4 - parte de criar conta não tinha sido feita anteriormente
@@ -20,5 +20,11 @@
 (trabalhoso)
 [] 6 - adicionar amigos (essa vai ser mais chata pq terá um modal que vai mostrar os usuários pesquisados a partir do nome) 
 
+(trabalhoso e difícil)
+[] 7 - enviar mensagens com web sockets 
 
+(trabalhoso e difícil)
+[] 8 - fazer o front receber as mensagens em tempo real do sockets
 
+(trabalhoso e difícil)
+[] 9 - usar o bullmq para e o redisio adapter para usar as filas do redis enviar as mensagens pro socket.
