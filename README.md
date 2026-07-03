@@ -18,3 +18,22 @@ O **ChatApp** foi desenhado seguindo conceitos de arquitetura escalável e orien
 *   **Autenticação e Usuários:** Gerenciamento de sessão de usuários com dados armazenados de forma segura no PostgreSQL. Fluxo de login e refresh token.
 *   **Ambiente Isolado (Docker):** Inicialização rápida de toda a infraestrutura de banco de dados e mensageria com apenas um comando.
 *   **Dados Iniciais (Seeding):** Script pronto para popular o banco de dados relacional com usuários de teste facilitando o desenvolvimento.
+
+
+**Login**
+![Login](./imgs//login-screen.png)
+
+**Home**
+![Home](./imgs//home-screen.png)
+
+![Home](./imgs//home-screen-conversation.png)
+
+
+**Friends**
+![Friends](./imgs//friends-screen.png)
+
+![Friends](./imgs//friends-screen-searching.png)
+
+**Add Friends**
+![Add Friends](./imgs//add-friend.png)
+![Add Friends](./imgs//add-friend-2.png)
