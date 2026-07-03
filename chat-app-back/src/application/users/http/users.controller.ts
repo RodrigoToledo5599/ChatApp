@@ -4,6 +4,7 @@ import { FindUserByIdUsecase } from "../usecases/find-user-by-id.usecase";
 import { FindUserByEmailUsecase } from "../usecases/find-user-by-email.usecase";
 import { FindUserByNameUsecase } from "../usecases/find-user-by-name.usecase";
 import { UserDto } from "../dto/user.dto";
+import { ApiOkResponse, ApiParam } from "@nestjs/swagger";
 
 
 @UseGuards(AuthGuard)
@@ -16,6 +17,8 @@ export class UsersController{
         private findUserByNameUsecase: FindUserByNameUsecase
     ){}
 
+    @ApiParam({name: 'name', type: String})
+    @ApiOkResponse({type: [UserDto]})
     @Get('name=:name')
     async searchUsersByName(
         @Param('name') name: string
@@ -23,6 +26,8 @@ export class UsersController{
         return await this.findUserByNameUsecase.execute(name)
     }
 
+    @ApiParam({name: 'email', type: String})
+    @ApiOkResponse({type: [UserDto]})
     @Get('email=:email')
     async searchUsersByEmail(
         @Param('email') email: string
@@ -30,6 +35,8 @@ export class UsersController{
         return await this.findUserByEmailUsecase.execute(email)
     }
 
+    @ApiParam({name: 'id', type: String})
+    @ApiOkResponse({type: UserDto})
     @Get('id=:id')
     async searchUsersById(
         @Param('id') id: string

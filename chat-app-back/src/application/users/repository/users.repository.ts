@@ -22,7 +22,8 @@ export class UsersRepository{
                     contains: namePart,
                     mode: 'insensitive'
                 }
-            }
+            },
+            take: 3
         })
     }
 
@@ -33,7 +34,8 @@ export class UsersRepository{
                     contains: emailPart,
                     mode: 'insensitive'
                 }
-            }
+            },
+            take: 3
         })
     }
 }

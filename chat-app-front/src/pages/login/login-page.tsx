@@ -15,9 +15,8 @@ export function LoginPage() {
   const router = useNavigate()
   const [form, setForm] = useState({ email: "", password: "" })
 
-
   const [errors, setErrors] = useState<Record<string, string>>({})
-    
+
   const createAccountSchema = z.object({      
     email: z
       .string()
@@ -103,21 +102,6 @@ export function LoginPage() {
               />
             </div>
             
-            {/* POR ENQUANTO NÃO  */}
-            {/* <div className="flex items-center justify-between text-xs py-1">
-              <label className="flex items-center gap-2 cursor-pointer select-none text-zinc-400 hover:text-zinc-300 transition-colors">
-                <input
-                  id="remember"
-                  type="checkbox"
-                  className="w-4 h-4 rounded border-zinc-800 bg-zinc-950 text-emerald-600 focus:ring-emerald-500/30 focus:ring-offset-0 transition-all cursor-pointer"
-                />
-                Lembrar de mim
-              </label>
-              <a href="#" className="font-semibold text-emerald-400 hover:text-emerald-300 hover:underline transition-colors">
-                Esqueceu a senha?
-              </a>
-            </div> */}
-
             <button
               type="submit"
               disabled={isPending}

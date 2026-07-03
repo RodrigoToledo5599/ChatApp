@@ -1,13 +1,9 @@
-import type { FriendDto } from "../../lib/types/friendship.types";
+import type { FriendDto, UserDto } from "../../lib/types/friendship.types";
 import { http } from "../http";
 
 
-
-
-
-
-
 const ENDPOINT = "/friends"
+const ENDPOINT2 = "/users"
 
 export const friendshipService = {
 
@@ -31,5 +27,19 @@ export const friendshipService = {
     blockFriendRequest: async (friendshipId: string) => {
         const { data } = await http.patch(`${ENDPOINT}/block/${friendshipId}`)
         return data
+    },
+
+    searchForAFriend: async (nameOrEmail: string): Promise<UserDto[] | null> => {
+        if(nameOrEmail.includes("@")){
+            const { data } = await http.get<UserDto[]>(`${ENDPOINT2}/email=${nameOrEmail}`);
+            return !data ? null : data;
+        }
+        const { data } = await http.get<UserDto[]>(`${ENDPOINT2}/name=${nameOrEmail}`);
+        return !data ? null : data;
+    },
+
+    sendFriendshipRequest: async (receiverId: string) => {
+        const { data } = await http.post(`${ENDPOINT}`, { receiverId: receiverId });
+        return data;
     }
 }

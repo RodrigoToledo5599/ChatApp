@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { MongoService } from '../../../infra/mongo/mongo.service';
 import { PrismaService } from '../../../infra/prisma/prisma.service';
-import { UsersOnConversations } from '@prisma/client';
+import { Conversations, Friendship, UsersOnConversations } from '@prisma/client';
 import { ConversationMessagesRequestDto, MessageDto } from '../dto/conversation-messages';
 import { MongoCollections } from '../../../infra/mongo/mongo.collections';
 
@@ -55,7 +55,7 @@ export class ConversationsRepository {
   async getConversationMessages(params: ConversationMessagesRequestDto) {
     const conversationId = params.conversationId
     const query: any = { conversationId };
-    const limit = Number(params.limit) || 10
+    const limit = Number(params.limit) || 20
 
     if (params.oldestMessageDate) 
       query.createdAt = { $lt: new Date(params.oldestMessageDate) };
@@ -69,15 +69,68 @@ export class ConversationsRepository {
       .then(messages => messages.reverse());
   }
 
-  async createMessage(newMessage :MessageDto) {
-      const result = await this.mongoService.db
-        .collection<MessageDto>(MongoCollections.Messages)
-        .insertOne(newMessage);
+  async createMessage(newMessage :MessageDto): Promise<MessageDto> {
+    
+    const result = await this.mongoService.db
+      .collection<MessageDto>(MongoCollections.Messages)
+      .insertOne(newMessage);
 
       return {
         _id: result.insertedId,
         ...newMessage,
       };
+  }
+
+  async findDirectConversation(userId: string, friendId: string) : Promise<Conversations | null>{
+    return await this.prisma.conversations.findFirst({
+      where: {
+        isGroup: false,
+        users: {
+          every: {
+            userId: { in: [userId, friendId] }
+          }
+        }
+      },
+      include: {
+        users: {
+          include: {
+            user: {
+              select:{
+                id: true,
+                name: true,
+                email: true,
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+
+  async createConversationBetween2Users(userId: string, friendId: string) : Promise<Conversations | null>{
+    return await this.prisma.conversations.create({
+      data: {
+        isGroup: false,
+        title: null,
+        users: {
+          createMany: {
+            data: [
+              { userId: userId },
+              { userId: friendId }
+            ]
+          }
+        }
+      },
+      include: {
+        users: {
+          select: {
+            user: {
+              select: { id: true, name: true, email: true }
+            }
+          }
+        }
+      }
+    });
   }
 
 

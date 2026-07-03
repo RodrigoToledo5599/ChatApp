@@ -27,7 +27,8 @@ export function CreateAccountPage() {
     name: z
       .string()
       .min(2, "O nome deve ter pelo menos 2 caracteres")
-      .max(50, "Nome longo demais"),
+      .max(50, "Nome longo demais")
+      .regex(/^[^@]*$/, "O caractere @ só deve ser usado em emails ou senhas"),
     
     email: z
       .string()

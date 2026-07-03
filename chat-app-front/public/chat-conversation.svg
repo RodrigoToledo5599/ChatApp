@@ -1,9 +1,12 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 <!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools -->
-<svg fill="#4ade80" height="800px" width="800px" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" 
-	 viewBox="0 0 512 512" xml:space="preserve">
+<svg fill="#4ade80" height="800px" width="800px" version="1.1" id="Layer_1" 
+	xmlns="http://www.w3.org/2000/svg" 
+	xmlns:xlink="http://www.w3.org/1999/xlink" 
+	viewBox="0 0 512 512" xml:space="preserve">
 <g>
 	<g>
+	<!-- fill="#10B9811A" -->
 		<g>
 			<path d="M442.213,0H176.464c-32.597,0-59.136,26.517-59.136,59.115V64h218.219c56.128,0,101.781,45.675,101.781,101.781v132.885
 				h4.885c32.597,0,59.115-26.517,59.115-59.115V59.115C501.328,26.517,474.811,0,442.213,0z"/>

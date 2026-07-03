@@ -21,12 +21,14 @@ export default function FriendshipPage() {
       friend.email.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesStatus && matchesSearch;
   }) || [];
+
   const filteredPendingFriendshipSolicitationsFromMe = listedFriends?.filter(friend => 
     friend.status === FriendShipStatus.PENDING && friend.senderId === user?.id
-  ) || []
+  ) || [];
+  
   const filteredPendingFriendshipSolicitationsToMe = listedFriends?.filter(friend => 
     friend.status === FriendShipStatus.PENDING && friend.receiverId === user?.id
-  ) || []
+  ) || [];
 
   return (
     <main className="flex h-screen w-full overflow-hidden bg-zinc-950 text-zinc-100 antialiased font-sans">
@@ -39,7 +41,7 @@ export default function FriendshipPage() {
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
             <input 
               type="text"
-              placeholder="Buscar pelo nome ou e-mail..."
+              placeholder="Buscar pelo nome ou e-mail"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-sm placeholder-zinc-500 transition-all
@@ -54,6 +56,7 @@ export default function FriendshipPage() {
           filteredPendingFriendshipSolicitationsToMe= {filteredPendingFriendshipSolicitationsToMe}
           searchTerm={searchTerm}
           isLoading={isLoading}
+          user={user}
         />
 
         <FriendsBottomBar/>

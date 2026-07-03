@@ -3,8 +3,12 @@ import { useGetUserConversationMessages } from "../../../hooks/useConversation"
 import PageDescriptionWithNoConversationSelected from "./page-description-with-no-conversation-selected"
 import ChatInputMessage from "./chat-input-message"
 import UTCtoNormalVisualDate from "../../../lib/utils"
+import { useMessagesUpdate, useSendMessage } from "../../../hooks/useMessagesUpdate"
+import { useEffect, useRef, useState } from "react"
+
 
 export function Chat({ conversationId }: { conversationId: string}) {
+
   const { 
     data, 
     isLoading, 
@@ -12,10 +16,38 @@ export function Chat({ conversationId }: { conversationId: string}) {
     hasNextPage,
     isFetchingNextPage
   } = useGetUserConversationMessages({ conversationId, limit: "10" })
-
+  const { mutate: SendMessage } = useSendMessage()
+  useMessagesUpdate(conversationId)
+  
   const allMessages = data 
-    ? [...data.pages].reverse().flatMap(page => page.data) 
-    : []
+  ? [...data.pages].reverse().flatMap(page => page.data) 
+  : []
+  
+  const prevMessagesCountRef = useRef(allMessages.length)
+  const messagesEndRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+
+    const currentCount = allMessages.length
+    const prevCount = prevMessagesCountRef.current
+
+    prevMessagesCountRef.current = currentCount
+    
+    const isNewSingleMessage = currentCount - prevCount === 1
+    const isFirstLoad = prevCount === 0 && currentCount > 0
+
+    if (isNewSingleMessage || isFirstLoad) {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+    }
+  }, [allMessages.length])
+
+
+
+
+  if (isLoading) return (
+    <div className="w-full h-full flex items-center justify-center">
+      <Loader2 className="animate-spin w-16 h-16 text-emerald-500"/>
+    </div>
+  )
 
   if (isLoading) return 
   <div className="w-full h-full flex items-center justify-center">
@@ -59,7 +91,7 @@ export function Chat({ conversationId }: { conversationId: string}) {
                 <div className="">
                   {msg.content}
                 </div>
-                {/* { isGroup === true?
+                {/* { data!.pages[0].isGroup === true?
                   <div className="w-full font-bold  flex flex-wrap">
                     {msg.userName}
                   </div>
@@ -78,9 +110,12 @@ export function Chat({ conversationId }: { conversationId: string}) {
             </div>
           ))}
         </div>
+        <div ref={messagesEndRef} />
       </div>
-
-      <ChatInputMessage/>
+      <ChatInputMessage
+        sendMessage={SendMessage}
+        conversationId={conversationId}
+      />
 
     </div>
   )

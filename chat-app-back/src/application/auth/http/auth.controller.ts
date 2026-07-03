@@ -52,9 +52,7 @@ export class AuthController {
     @ApiOkResponse({type: RefreshTokenDto})
     @Post('refresh-token')
     async refreshToken(@Req() request: express.Request, @Res({ passthrough: true }) res: express.Response) : Promise<RefreshTokenDto> {
-        const refreshToken = request.headers.cookie?.split('=')[1]
-        if(!refreshToken)
-            throw new UnauthorizedException('Credencias Inválidas');
+        const refreshToken = request['refresh']
         
         var result = await this.tokenRefreshUseCase.execute(refreshToken)
         if(result){
@@ -71,6 +69,7 @@ export class AuthController {
                 sameSite: 'lax',
                 path: '/auth/refresh-token',
                 maxAge: 3600000 * 24 * 15
+                // maxAge: 5000 // 5 segundos
             });
         }
         return result

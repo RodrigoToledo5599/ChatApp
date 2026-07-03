@@ -9,21 +9,23 @@ import { MongoModule } from './infra/mongo/mongo.module';
 import { FriendsModule } from './application/friends/friends.module';
 import { ConversationsModule } from './application/conversations/conversations.module';
 import { UsersModule } from './application/users/users.module';
+import { WebsocketModule } from './infra/websocket/websocket.module';
 
 @Module({
   imports: [
     MongoModule,
     PrismaModule,
     MiddlewareModule, 
+    AuthModule,
+    UsersModule,
+    FriendsModule,
+    ConversationsModule,
+    WebsocketModule,
     JwtModule.register({
       secret: process.env.SECRET_KEY_JWT,
       global: true,
       signOptions: { expiresIn: '2h', algorithm: 'HS256' },
     }),
-    AuthModule,
-    UsersModule,
-    FriendsModule,
-    ConversationsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

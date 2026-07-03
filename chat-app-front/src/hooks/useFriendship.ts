@@ -27,10 +27,31 @@ export function useDeleteFriendshipRequest(){
             
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: [TanStackKeys.friends]})
-            toast.info("Amizade recusada") 
+            toast.info("Pedido de amizade cancelado com sucesso") 
         },
         onError: (error) => {
            console.error("Erro ao cancelar solicitação:", error)
+           toast.error("erro ao se comunicar com o servidor")
+        }
+    })
+}
+
+
+export function useSendFriendshipRequest(){
+    const queryClient = useQueryClient()
+
+    return useMutation({
+        mutationFn: (receiverId: string) =>{
+            const data = friendshipService.sendFriendshipRequest(receiverId)
+            return data
+        }, 
+            
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: [TanStackKeys.friends]})
+            toast.info("Pedido de amizade enviado com sucesso") 
+        },
+        onError: (error) => {
+           console.error("Erro ao enviar solicitação:", error)
            toast.error("erro ao se comunicar com o servidor")
         }
     })

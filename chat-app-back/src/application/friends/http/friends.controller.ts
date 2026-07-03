@@ -8,6 +8,7 @@ import { CreatedFriendShipDto } from "../dto/created-friendship.dto";
 import { DeleteFriendshipRequestUsecase } from "../usecases/delete-friendship-request.usecase";
 import { AcceptOrRefuseFriendshiptUsecase } from "../usecases/accept-or-refuse-friendship.usecase";
 import { BlockFriendUsecase } from "../usecases/block-friend-usecase";
+import { ApiBody, ApiOkResponse, ApiParam } from "@nestjs/swagger"; 
 
 
 @UseGuards(AuthGuard)
@@ -21,6 +22,18 @@ export class FriendsController{
         private readonly blockAFriendUsecase: BlockFriendUsecase
     ){}
 
+    @ApiOkResponse({type: CreatedFriendShipDto})
+    @ApiBody({
+        schema: {
+            type: 'object',
+            properties: {
+                receiverId: { 
+                    type: 'string', 
+                },
+            },
+            required: ['receiverId']
+        },
+    })
     @Post('')
     async addFriend(
         @User() user,
@@ -31,6 +44,7 @@ export class FriendsController{
         return this.addFriendsUsecase.execute(user.id, body.receiverId)
     }
 
+    @ApiOkResponse({type: [FriendShipDto]})
     @Get('')
     async listFriends(
         @User() user,
@@ -38,6 +52,7 @@ export class FriendsController{
         return await this.listFriendsUsecase.execute(user.id)
     }
 
+    @ApiParam({name: 'friendshipId', type: String})
     @Delete(':friendshipId')
     async deleteFriendShipRequest(
         @User() user,
@@ -48,6 +63,7 @@ export class FriendsController{
         return await this.deleteFriendshipUsecase.execute(user.id, friendshipId)
     }
 
+    @ApiParam({name: 'friendshipId', type: String})
     @Patch('accept/:friendshipId')
     async acceptFriendshipRequest(
         @User() user,
@@ -56,6 +72,7 @@ export class FriendsController{
         return await this.acceptOrRefuseFriendshipUsecase.execute(user.id,friendshipId,true);
     }
 
+    @ApiParam({name: 'friendshipId', type: String})
     @Delete('refuse/:friendshipId')
     async refuseFriendshipRequest(
         @User() user,
@@ -64,6 +81,7 @@ export class FriendsController{
         return await this.acceptOrRefuseFriendshipUsecase.execute(user.id,friendshipId,false);
     }
 
+    @ApiParam({name: 'friendshipId', type: String})
     @Patch('block/:friendshipId')
     async BlockFriend(
         @User() user,

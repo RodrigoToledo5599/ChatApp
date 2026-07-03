@@ -14,7 +14,10 @@ export class AuthGuard implements CanActivate {
         context: ExecutionContext,
     ): Promise<boolean> {
         const request: Request = context.switchToHttp().getRequest();
-        const token: string | undefined = request.headers.cookie?.split('=')[1]
+        if(!request.cookies.accessToken)
+            throw new UnauthorizedException('Invalid or expired token');
+
+        const token: string | undefined = request.cookies.accessToken;
 
         if(!token)
             throw new UnauthorizedException('Invalid or expired token');

@@ -1,6 +1,5 @@
 "use client"
 
-import { Search } from "lucide-react"
 import { ConversationList } from "./conversation-list"
 import { ConversationsMenuHeader } from "./conversations-menu-header"
 import ConversationsMenuBottombar from "./conversations-menu-bottombar"
@@ -10,7 +9,7 @@ type ConversationProps = {
   currentUser: any
   data?: ConversationReturn[]
   loadingConversations: boolean
-  selectConversation: () => Promise<void>
+  selectConversation: (conversationId: string) => Promise<void>
 }
 
 export function ConversationsMenu(props: ConversationProps) {
@@ -28,15 +27,6 @@ export function ConversationsMenu(props: ConversationProps) {
               {props.data?.length || 0}
             </span>
           </h2>
-        </div>
-
-        <div className="relative w-full">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
-          <input
-            type="text"
-            placeholder="Pesquisar ou começar um chat..."
-            className="w-full pl-9 pr-4 py-2 bg-zinc-900 border border-zinc-800/80 rounded-xl text-xs text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all"
-          />
         </div>
       </div>
       

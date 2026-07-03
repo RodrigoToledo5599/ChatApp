@@ -1,7 +1,9 @@
-import { Ban, Blocks, MessageSquare, MoreVertical } from "lucide-react"
+import { Ban, MessageSquare } from "lucide-react"
 import type { FriendDto } from "../../../lib/types/friendship.types"
 import FriendshipSolicitationsContainer from "./friendship-solicitations-container"
 import { useBlockFriendRequest } from "../../../hooks/useFriendship"
+import { useNavigate } from "react-router-dom"
+import { conversationService } from "../../../api/services/conversation.service"
 
 
 export function FriendsContainerLoadingSkeleton(){
@@ -31,10 +33,19 @@ type FriendsContainerProps = {
     filteredPendingFriendshipSolicitationsToMe?: FriendDto[]
     searchTerm: string
     isLoading: boolean
+    user: any
 }
 
 export default function FriendsContainer(data : FriendsContainerProps){
     const {mutate: blockFriend} = useBlockFriendRequest()
+    const navigate = useNavigate();
+
+    const redirectToChat = async (friendId: string) =>{
+      const conversation = await conversationService.getFriendConversation(friendId)
+      console.log(conversation)
+      navigate(`/home/${conversation.id}`)
+    }
+
     return (
         <div className="flex-1 overflow-y-auto p-6 space-y-2 custom-scrollbar">
           {data.isLoading ? (
@@ -44,6 +55,7 @@ export default function FriendsContainer(data : FriendsContainerProps){
           ) : (
             data.listedFriends.map((friend) => {
               const initialLetter = friend.name ? friend.name.charAt(0).toUpperCase() : "?"
+
               return (
                 <div 
                   key={friend.id}
@@ -65,7 +77,13 @@ export default function FriendsContainer(data : FriendsContainerProps){
                   </div>
 
                   <div className="flex items-center gap-2 opacity-80 group-hover:opacity-100 transition-opacity">
-                    <button 
+                    <button
+                      onClick={() => {
+                        data.user.id === friend.receiverId?
+                          redirectToChat(friend.senderId)
+                          :
+                          redirectToChat(friend.receiverId)
+                      }} 
                       title="Iniciar conversa"
                       className="p-2.5 bg-zinc-950 border border-zinc-850 hover:bg-emerald-600/10 hover:border-emerald-500/20 text-zinc-400 hover:text-emerald-400 rounded-xl transition-all"
                     >

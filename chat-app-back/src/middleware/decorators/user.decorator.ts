@@ -1,14 +1,13 @@
-import { createParamDecorator, ExecutionContext, InternalServerErrorException } from '@nestjs/common';
-import { jwtDecode } from "jwt-decode";
+import { createParamDecorator, ExecutionContext, UnauthorizedException } from '@nestjs/common';
 
 export const User = createParamDecorator(
-  (data: string | undefined, ctx: ExecutionContext) => {
+  (data: string | undefined, ctx: ExecutionContext) => {  
     const request = ctx.switchToHttp().getRequest();
-    // const accessToken: string | undefined = request.cookie.accessToken;
-    const accessToken: string | undefined = request.headers.cookie?.split('=')[1]
-    if(!accessToken)
-      throw new InternalServerErrorException('Internal server error');
-    const user = jwtDecode<any>(accessToken);
+
+    const user = request.user;
+    if(!user)
+      throw new UnauthorizedException('User session not found');
+  
     return data ? user?.[data] : user;
   },
 );

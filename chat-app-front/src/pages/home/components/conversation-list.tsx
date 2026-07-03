@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import type { ConversationReturn } from "../../../lib/types/conversations.types"
 import { Loader2 } from 'lucide-react'
 
@@ -10,6 +11,9 @@ interface ConversationListProps {
 }
 
 export function ConversationList({ conversations, loadingConversations, selectConversation }: ConversationListProps) {
+
+  const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
+
   return (
     <div className="flex-1 overflow-y-auto custom-scrollbar">
       <div className="flex-1 h-full flex flex-col">
@@ -34,9 +38,17 @@ export function ConversationList({ conversations, loadingConversations, selectCo
               return (
                 <button
                   key={conv.conversation.id}
-                  onClick={() => selectConversation(conv.conversation.id)}
+                  onClick={() => {
+                    setSelectedConversationId(conv.conversation.id);
+                    selectConversation(conv.conversation.id);
+                  }}
                   type="button"
-                  className="group flex w-full items-center gap-3.5 px-3.5 py-3 text-left rounded-xl transition-all duration-200 hover:bg-zinc-900 border border-transparent hover:border-zinc-800/50"
+                  className=
+                  { conv.conversation.id === selectedConversationId ? 
+                    "group flex w-full items-center gap-3.5 px-3.5 py-3 text-left rounded-xl transition-all duration-200 bg-zinc-800 border border-transparent hover:border-zinc-800/50"
+                    :
+                    "group flex w-full items-center gap-3.5 px-3.5 py-3 text-left rounded-xl transition-all duration-200 hover:bg-zinc-900 border border-transparent hover:border-zinc-800/50"
+                  }
                 >
                   <div className="flex items-center justify-center w-11 h-11 rounded-full bg-zinc-900 group-hover:bg-zinc-800 text-zinc-300 group-hover:text-emerald-400 font-semibold text-sm border border-zinc-800 transition-colors shadow-sm">
                     {conv.conversation.isGroup ? "👥" : initial}
@@ -46,10 +58,6 @@ export function ConversationList({ conversations, loadingConversations, selectCo
                     <div className="flex items-center justify-between gap-2">
                       <span className="font-semibold text-zinc-200 group-hover:text-white text-sm truncate transition-colors">
                         {chatName}
-                      </span>
-    
-                      <span className="text-[10px] text-zinc-500 font-medium group-hover:text-zinc-400 shrink-0">
-                        18:55
                       </span>
                     </div>
                       

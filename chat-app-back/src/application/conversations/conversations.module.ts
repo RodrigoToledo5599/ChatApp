@@ -4,6 +4,7 @@ import { ConversationsRepository } from './repository/conversations.repository';
 import { GetUserConversationsUsecase } from './usecases/get-user-conversations.usecase';
 import { GetConversationMessagesUsecase } from './usecases/get-conversation-messages.usecase';
 import { SendMessageUsecase } from './usecases/send-message.usecase';
+import { GetFriendConversationUsecase } from './usecases/get-friend-conversation.usecase';
 
 @Module({
   controllers: [ConversationsController],
@@ -11,7 +12,8 @@ import { SendMessageUsecase } from './usecases/send-message.usecase';
     ConversationsRepository,
     GetUserConversationsUsecase,
     GetConversationMessagesUsecase,
-    SendMessageUsecase
+    SendMessageUsecase,
+    GetFriendConversationUsecase
   ]
 })
 export class ConversationsModule {}

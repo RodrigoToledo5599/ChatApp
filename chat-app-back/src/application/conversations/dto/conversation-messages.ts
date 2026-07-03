@@ -28,13 +28,28 @@ export class MessageDto {
 }
 
 
+export class MessageDtoRequest {
+  conversationId: string  
+  content: string
+
+  constructor(
+    conversationId: string,
+    content: string,
+  ){
+    this.conversationId = conversationId
+    this.content = content
+  }
+  
+}
+
+
 export class ConversationMessagesRequestDto {
     conversationId:string
     limit: string
     oldestMessageDate?: string
 
     constructor(
-        conversationId:string,
+        conversationId: string,
         limit: string,
         oldestMessageDate?: string,
     ){

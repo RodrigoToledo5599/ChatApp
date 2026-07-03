@@ -21,30 +21,38 @@ function App() {
       <BrowserRouter>
         <QueryClientProvider client={queryClient}>
             <Routes>
+              
               <Route
                 path="/"
                 element = {
                   <LoginPage/>
                 }
               />
+
               <Route
                 path="/home"
-                element = {
-                  <HomePage/>
-                }
+                element={<HomePage />}
               />
+
+              <Route
+                path="/home/:conversationId"
+                element={<HomePage />}
+              />
+
               <Route
                 path="/friendship"
                 element = {
                   <FriendshipPage/>
                 }
               />
+              
               <Route
                 path="/create-account"
                 element = {
                   <CreateAccountPage/>
                 }
               />
+
             </Routes>
         </QueryClientProvider>
       </BrowserRouter>

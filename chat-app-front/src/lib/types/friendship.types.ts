@@ -16,3 +16,10 @@ export interface FriendDto{
     status: FriendShipStatusType
     createdAt: string
 }
+
+export interface UserDto{
+    id: string,
+    name: string,
+    email: string,
+    phone: string
+}
