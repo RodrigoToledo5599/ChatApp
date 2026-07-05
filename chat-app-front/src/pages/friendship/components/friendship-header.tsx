@@ -1,5 +1,5 @@
 import { UserPlus, Users, X, Search } from "lucide-react";
-import { useState, useEffect, useRef, type SetStateAction } from "react";
+import { useState, useEffect, useRef } from "react";
 import type { FriendDto, UserDto } from "../../../lib/types/friendship.types";
 import { friendshipService } from "../../../api/services/friendship.service";
 import { useSendFriendshipRequest } from "../../../hooks/useFriendship";

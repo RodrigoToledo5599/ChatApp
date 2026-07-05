@@ -4,7 +4,7 @@ import PageDescriptionWithNoConversationSelected from "./page-description-with-n
 import ChatInputMessage from "./chat-input-message"
 import UTCtoNormalVisualDate from "../../../lib/utils"
 import { useMessagesUpdate, useSendMessage } from "../../../hooks/useMessagesUpdate"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef } from "react"
 
 
 export function Chat({ conversationId }: { conversationId: string}) {

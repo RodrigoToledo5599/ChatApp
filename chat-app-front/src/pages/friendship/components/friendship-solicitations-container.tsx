@@ -24,7 +24,7 @@ type FriendsContainerPropsToMe = {
 }
 
 function PendingFriendshipSolicitationsFromMe(data : FriendsContainerPropsFromMe){
-    const {mutate: deleteRequest, isPending} = useDeleteFriendshipRequest()
+    const {mutate: deleteRequest} = useDeleteFriendshipRequest()
     return (
         <div>
             <h2>Minhas solicitações</h2>
