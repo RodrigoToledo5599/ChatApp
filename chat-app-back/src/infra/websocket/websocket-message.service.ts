@@ -4,6 +4,8 @@ import * as cookie from 'cookie'
 import { JwtStrategy } from '../../middleware/strategies/jwt.strategy'
 
 @WebSocketGateway({
+  pingInterval: 10000,
+  pingTimeout: 5000,
   allowEIO3: true,
   cors: {
     origin: true,
@@ -76,7 +78,31 @@ export class WebSocketMessageService implements OnGatewayConnection {
     client.join(roomName);
   }
 
+  @SubscribeMessage('leave_chat')
+  handleLeaveRoom(client: Socket, payload: { conversationId: string }) {
+    const roomName = payload.conversationId;
+    client.leave(roomName);
+  }
+
   async emitNewMessage(conversationId: string, messageData: any) {
     this.namespace.to(conversationId).emit('messages', messageData);
+  }
+
+  async getActiveRooms(): Promise<{ rooms: string[]; totalConnections: number }> {
+    const sockets = await this.namespace.fetchSockets();
+    const customRooms = new Set<string>();
+
+    for (const socket of sockets) {
+      for (const room of socket.rooms) {
+        if (room !== socket.id) {
+          customRooms.add(room);
+        }
+      }
+    }
+
+    return {
+      rooms: Array.from(customRooms),
+      totalConnections: sockets.length
+    };
   }
 }

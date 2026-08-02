@@ -23,9 +23,13 @@ export function useGetUserConversationMessages(params: ConversationMessagesReque
     getNextPageParam: (lastPage) => {
       return lastPage.oldestMessageDate || undefined
     },
+    staleTime: 60000, // 10 minutos
+    refetchOnWindowFocus: false,
     enabled: !!params.conversationId,
     retry: false
   })
 }
+
+
 
 

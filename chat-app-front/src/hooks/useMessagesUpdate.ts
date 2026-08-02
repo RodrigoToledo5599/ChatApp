@@ -4,7 +4,6 @@ import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { TanStackKeys } from "../lib/tan-stack-keys"
 import { conversationService } from "../api/services/conversation.service"
 
-// const socket = io("ws://localhost:3000/messages", {
 const socket = io(import.meta.env.VITE_SOCKET_URL,{
     transports: ["websocket"],
     withCredentials: true,
@@ -61,7 +60,7 @@ export function useMessagesUpdate(conversationId: string) {
 
         return () => {
             socket.off("messages")
-            socket.disconnect()
+            socket.emit("leave_chat", { conversationId })
         }
 
     }, [conversationId, queryClient])
