@@ -1,14 +1,15 @@
-import { BadRequestException, Body, Controller, Delete, Get, InternalServerErrorException, Param, Patch, Post, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, ParseUUIDPipe, Patch, Post, UseGuards } from "@nestjs/common";
 import { AuthGuard } from "../../../middleware/guards/auth.guard";
 import { User } from "../../../middleware/decorators/user.decorator";
 import { AddFriendUsecase } from "../usecases/add-friend.usecase";
 import { ListFriendsUsecase } from "../usecases/list-friends.usecase";
-import { FriendShipDto } from "../dto/friendship.dto";
+import { AddFriendRequestDto, FriendShipDto } from "../dto/friendship.dto";
 import { CreatedFriendShipDto } from "../dto/created-friendship.dto";
 import { DeleteFriendshipRequestUsecase } from "../usecases/delete-friendship-request.usecase";
 import { AcceptOrRefuseFriendshiptUsecase } from "../usecases/accept-or-refuse-friendship.usecase";
 import { BlockFriendUsecase } from "../usecases/block-friend-usecase";
-import { ApiBody, ApiOkResponse, ApiParam } from "@nestjs/swagger"; 
+import { UnblockFriendUsecase } from "../usecases/unblock-friend.usecase";
+import { ApiBody, ApiOkResponse, ApiParam } from "@nestjs/swagger";
 
 
 @UseGuards(AuthGuard)
@@ -19,28 +20,17 @@ export class FriendsController{
         private readonly listFriendsUsecase: ListFriendsUsecase,
         private readonly deleteFriendshipUsecase: DeleteFriendshipRequestUsecase,
         private readonly acceptOrRefuseFriendshipUsecase: AcceptOrRefuseFriendshiptUsecase,
-        private readonly blockAFriendUsecase: BlockFriendUsecase
+        private readonly blockAFriendUsecase: BlockFriendUsecase,
+        private readonly unblockFriendUsecase: UnblockFriendUsecase
     ){}
 
     @ApiOkResponse({type: CreatedFriendShipDto})
-    @ApiBody({
-        schema: {
-            type: 'object',
-            properties: {
-                receiverId: { 
-                    type: 'string', 
-                },
-            },
-            required: ['receiverId']
-        },
-    })
+    @ApiBody({type: AddFriendRequestDto})
     @Post('')
     async addFriend(
         @User() user,
-        @Body() body
+        @Body() body: AddFriendRequestDto
     ):Promise<CreatedFriendShipDto>{
-        if(!body.receiverId)
-            throw new InternalServerErrorException('Não foi possível adicionar o usuário');
         return this.addFriendsUsecase.execute(user.id, body.receiverId)
     }
 
@@ -52,14 +42,13 @@ export class FriendsController{
         return await this.listFriendsUsecase.execute(user.id)
     }
 
+    // cancela um pedido enviado ou desfaz uma amizade
     @ApiParam({name: 'friendshipId', type: String})
     @Delete(':friendshipId')
     async deleteFriendShipRequest(
         @User() user,
-        @Param('friendshipId') friendshipId: string
+        @Param('friendshipId', ParseUUIDPipe) friendshipId: string
     ){
-        if(!friendshipId)
-            throw new BadRequestException('passe os parametros corretos');
         return await this.deleteFriendshipUsecase.execute(user.id, friendshipId)
     }
 
@@ -67,7 +56,7 @@ export class FriendsController{
     @Patch('accept/:friendshipId')
     async acceptFriendshipRequest(
         @User() user,
-        @Param() friendshipId: string
+        @Param('friendshipId', ParseUUIDPipe) friendshipId: string
     ){
         return await this.acceptOrRefuseFriendshipUsecase.execute(user.id,friendshipId,true);
     }
@@ -76,20 +65,27 @@ export class FriendsController{
     @Delete('refuse/:friendshipId')
     async refuseFriendshipRequest(
         @User() user,
-        @Param() friendshipId:string ,
+        @Param('friendshipId', ParseUUIDPipe) friendshipId: string
     ){
         return await this.acceptOrRefuseFriendshipUsecase.execute(user.id,friendshipId,false);
     }
 
     @ApiParam({name: 'friendshipId', type: String})
     @Patch('block/:friendshipId')
-    async BlockFriend(
+    async blockFriend(
         @User() user,
-        @Param() friendshipId: string
+        @Param('friendshipId', ParseUUIDPipe) friendshipId: string
     ){
-        if(!friendshipId)
-            throw new BadRequestException('passe os parametros corretos');
         return await this.blockAFriendUsecase.execute(user.id,friendshipId);
     }
 
-}   
+    @ApiParam({name: 'friendshipId', type: String})
+    @Patch('unblock/:friendshipId')
+    async unblockFriend(
+        @User() user,
+        @Param('friendshipId', ParseUUIDPipe) friendshipId: string
+    ){
+        return await this.unblockFriendUsecase.execute(user.id,friendshipId);
+    }
+
+}

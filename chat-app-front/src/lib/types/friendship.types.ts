@@ -1,5 +1,3 @@
-
-
 export const FriendShipStatus = {
     PENDING: "PENDING",
     ACCEPTED: "ACCEPTED",
@@ -14,12 +12,12 @@ export interface FriendDto{
     senderId: string,
     receiverId: string,
     status: FriendShipStatusType
+    blockedById: string | null
     createdAt: string
 }
 
 export interface UserDto{
     id: string,
     name: string,
-    email: string,
-    phone: string
+    email: string
 }

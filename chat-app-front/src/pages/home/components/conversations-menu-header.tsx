@@ -1,7 +1,8 @@
 import { CircleUser } from "lucide-react"
+import type { User } from "../../../lib/types/auth.types"
 
 type ConversationMenuHeaderProps = {
-  currentUser: any,
+  currentUser?: User,
 }
 
 

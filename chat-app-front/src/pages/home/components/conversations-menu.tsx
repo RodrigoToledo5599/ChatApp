@@ -1,15 +1,15 @@
-"use client"
-
 import { ConversationList } from "./conversation-list"
 import { ConversationsMenuHeader } from "./conversations-menu-header"
 import ConversationsMenuBottombar from "./conversations-menu-bottombar"
 import type { ConversationReturn } from "../../../lib/types/conversations.types"
+import type { User } from "../../../lib/types/auth.types"
 
 type ConversationProps = {
-  currentUser: any
+  currentUser?: User
   data?: ConversationReturn[]
   loadingConversations: boolean
-  selectConversation: (conversationId: string) => Promise<void>
+  selectedConversationId?: string
+  selectConversation: (conversationId: string) => void
 }
 
 export function ConversationsMenu(props: ConversationProps) {
@@ -36,6 +36,7 @@ export function ConversationsMenu(props: ConversationProps) {
         <ConversationList 
           conversations={props.data}
           loadingConversations={props.loadingConversations}
+          selectedConversationId={props.selectedConversationId}
           selectConversation={props.selectConversation}
         />
       </div>

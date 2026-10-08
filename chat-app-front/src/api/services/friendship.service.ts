@@ -3,7 +3,7 @@ import { http } from "../http";
 
 
 const ENDPOINT = "/friends"
-const ENDPOINT2 = "/users"
+const USERS_ENDPOINT = "/users"
 
 export const friendshipService = {
 
@@ -12,12 +12,13 @@ export const friendshipService = {
         return data
     },
 
-    deleteFriendshipRequest: async (friendshipId: string) => {
+    // cancela um pedido enviado ou desfaz uma amizade aceita
+    deleteFriendship: async (friendshipId: string) => {
         const { data } = await http.delete(`${ENDPOINT}/${friendshipId}`);
         return data;
     },
 
-    useAcceptOrRefuseFriendshipRequest: async (friendshipId: string, accepted :boolean) => {
+    acceptOrRefuseFriendshipRequest: async (friendshipId: string, accepted :boolean) => {
         return accepted === true ? 
             await http.patch(`${ENDPOINT}/accept/${friendshipId}`)
             :
@@ -29,13 +30,15 @@ export const friendshipService = {
         return data
     },
 
-    searchForAFriend: async (nameOrEmail: string): Promise<UserDto[] | null> => {
-        if(nameOrEmail.includes("@")){
-            const { data } = await http.get<UserDto[]>(`${ENDPOINT2}/email=${nameOrEmail}`);
-            return !data ? null : data;
-        }
-        const { data } = await http.get<UserDto[]>(`${ENDPOINT2}/name=${nameOrEmail}`);
-        return !data ? null : data;
+    unblockFriend: async (friendshipId: string) => {
+        const { data } = await http.patch(`${ENDPOINT}/unblock/${friendshipId}`)
+        return data
+    },
+
+    // com '@' o back busca o e-mail exato; sem '@', parte do nome
+    searchForAFriend: async (nameOrEmail: string): Promise<UserDto[]> => {
+        const { data } = await http.get<UserDto[]>(`${USERS_ENDPOINT}/search`, { params: { q: nameOrEmail } });
+        return data ?? [];
     },
 
     sendFriendshipRequest: async (receiverId: string) => {

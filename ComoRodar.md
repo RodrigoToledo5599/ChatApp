@@ -5,7 +5,7 @@ Esse projeto foi feito em Nestjs e Reactjs com node versão v24.14.0
 ## Requisitos:
 
 
-### * Node v24.14.0
+### * Node v24.14.0 (há um `.nvmrc` na raiz: rode `nvm use`)
 ### * Docker
 
 

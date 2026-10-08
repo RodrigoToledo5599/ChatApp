@@ -16,6 +16,10 @@ export const authService = {
     getMe: async () : Promise<User> => {
         const {data} = await http.get<User>(ENDPOINT+"/me");
         return data
+    },
+
+    logout: async () : Promise<void> => {
+        await http.post(ENDPOINT+"/logout");
     }
 
 

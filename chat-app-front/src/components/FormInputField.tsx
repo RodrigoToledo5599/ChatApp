@@ -4,7 +4,6 @@ interface InputProps {
     type?: string
     value: string
     onChange: (val: string) => void;
-    themeContext?: any,
     placeholder?: string,
     error?: string;
 }
@@ -21,7 +20,7 @@ export function FormInputField({
 }: InputProps){
     return (
         <div className="flex flex-col gap-2">
-            <label htmlFor="email" className="text-sm font-medium text-foreground">
+            <label htmlFor={id} className="text-sm font-medium text-foreground">
                 {name}
             </label>              
             <input

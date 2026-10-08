@@ -29,16 +29,23 @@ export class FriendsRepository {
                     },
                 ]
             },
-            
+
         })
     }
 
-    async listFriends(userId: string): Promise<FriendshipWithUsers[] | null> {
+    // amizades/pedidos do usuário; bloqueios só aparecem para quem bloqueou (ou para ambos, nos bloqueios antigos sem autor)
+    async listFriends(userId: string): Promise<FriendshipWithUsers[]> {
         return await this.prisma.friendship.findMany({
             where: {
-                OR: [
-                    { senderId: userId },
-                    { receiverId: userId }
+                AND: [
+                    { OR: [{ senderId: userId }, { receiverId: userId }] },
+                    {
+                        OR: [
+                            { status: { not: FriendshipStatus.BLOCKED } },
+                            { blockedById: userId },
+                            { blockedById: null },
+                        ]
+                    }
                 ]
             },
             include: {
@@ -52,7 +59,12 @@ export class FriendsRepository {
         });
     }
 
-    async addFriend(senderId: string, receiverId: string ): Promise<Friendship | null>{
+    async userExists(userId: string): Promise<boolean> {
+        const user = await this.prisma.users.findUnique({ where: { id: userId }, select: { id: true } })
+        return !!user
+    }
+
+    async addFriend(senderId: string, receiverId: string ): Promise<Friendship>{
         return await this.prisma.friendship.create({
             data:{
                 senderId: senderId,
@@ -85,10 +97,10 @@ export class FriendsRepository {
         })
     }
 
-    async blockFriend(friendShipRequesId:string){
+    async blockFriend(friendShipRequesId:string, blockedById: string){
         return await this.prisma.friendship.update({
             where: { id: friendShipRequesId },
-            data: {status: FriendshipStatus.BLOCKED }
+            data: {status: FriendshipStatus.BLOCKED, blockedById }
         })
     }
 }

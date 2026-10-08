@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Users } from '@prisma/client';
+import { Sessions, Users } from '@prisma/client';
 import { PrismaService } from './../../../infra/prisma/prisma.service';
 
 @Injectable()
@@ -21,16 +21,29 @@ export class AuthRepository {
         })
     }
 
-    async saveRefreshToken(id: string, hashedRefreshToken: string) {
-        await this.prisma.users.update({
-            where: {
-                id: id
-            },
-            data: {
-                refresh: hashedRefreshToken
-            }
+    async createSession(id: string, userId: string, refreshHash: string, expiresAt: Date): Promise<Sessions> {
+        return await this.prisma.sessions.create({
+            data: { id, userId, refreshHash, expiresAt }
         })
     }
 
-   
+    async findSession(id: string): Promise<Sessions | null> {
+        return await this.prisma.sessions.findUnique({
+            where: { id }
+        })
+    }
+
+    async updateSessionRefreshHash(id: string, refreshHash: string, expiresAt: Date) {
+        await this.prisma.sessions.update({
+            where: { id },
+            data: { refreshHash, expiresAt }
+        })
+    }
+
+    async deleteSession(id: string) {
+        await this.prisma.sessions.deleteMany({
+            where: { id }
+        })
+    }
+
 }

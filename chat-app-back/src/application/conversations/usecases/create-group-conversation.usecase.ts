@@ -1,14 +1,14 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable } from '@nestjs/common';
 import { ConversationsRepository } from '../repository/conversations.repository';
-
-export interface CreateGroupConversationInputDto {
-  title: string;
-  memberIds: string[];
-}
+import { CreateGroupConversationInputDto } from '../dto/create-group-conversation.dto';
+import { WebSocketMessageService } from '../../../infra/websocket/websocket-message.service';
 
 @Injectable()
 export class CreateGroupConversationUsecase {
-  constructor(private readonly conversationsRepo: ConversationsRepository) {}
+  constructor(
+    private readonly conversationsRepo: ConversationsRepository,
+    private readonly wsService: WebSocketMessageService,
+  ) {}
 
   async execute(userId: string, data: CreateGroupConversationInputDto) {
     const title = data.title?.trim();
@@ -24,6 +24,15 @@ export class CreateGroupConversationUsecase {
       throw new BadRequestException('Selecione pelo menos um amigo para o grupo.');
     }
 
-    return this.conversationsRepo.createGroupConversation(userId, title, memberIds);
+    const acceptedFriendIds = new Set(
+      await this.conversationsRepo.findAcceptedFriendIds(userId, memberIds),
+    );
+    if (memberIds.some((id) => !acceptedFriendIds.has(id))) {
+      throw new ForbiddenException('Todos os membros do grupo precisam ser seus amigos.');
+    }
+
+    const conversation = await this.conversationsRepo.createGroupConversation(userId, title, memberIds);
+    this.wsService.notifyUsers([userId, ...memberIds], 'conversations_updated');
+    return conversation;
   }
 }

@@ -11,9 +11,8 @@ model Users {
   id        String   @id @default(uuid())
   name      String
   email     String   @unique
-  phone     String   @unique
+  phone     String?  @unique
   password  String
-  refresh   String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -21,6 +20,21 @@ model Users {
   receivedFriendships Friendship[]           @relation("ReceivedFriendships")
   
   conversations       UsersOnConversations[]
+  sessions            Sessions[]
+}
+
+// uma linha por dispositivo logado; o refresh token carrega o id da sessão
+model Sessions {
+  id          String   @id
+  userId      String
+  refreshHash String
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user Users @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model Friendship {
@@ -28,6 +42,7 @@ model Friendship {
   senderId   String
   receiverId String
   status     FriendshipStatus @default(PENDING)
+  blockedById String?
   createdAt  DateTime         @default(now())
   updatedAt  DateTime         @updatedAt
 
@@ -41,6 +56,8 @@ model Conversations {
   id        String     @id @default(uuid())
   title     String? 
   isGroup   Boolean    @default(false)
+  // apenas para conversas diretas: ids dos 2 usuários ordenados e unidos por ':'
+  directKey String?    @unique
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
 

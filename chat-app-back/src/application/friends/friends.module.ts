@@ -6,6 +6,7 @@ import { ListFriendsUsecase } from './usecases/list-friends.usecase';
 import { DeleteFriendshipRequestUsecase } from './usecases/delete-friendship-request.usecase';
 import { AcceptOrRefuseFriendshiptUsecase } from './usecases/accept-or-refuse-friendship.usecase';
 import { BlockFriendUsecase } from './usecases/block-friend-usecase';
+import { UnblockFriendUsecase } from './usecases/unblock-friend.usecase';
 
 @Module({
     controllers: [
@@ -17,7 +18,8 @@ import { BlockFriendUsecase } from './usecases/block-friend-usecase';
         ListFriendsUsecase,
         DeleteFriendshipRequestUsecase,
         AcceptOrRefuseFriendshiptUsecase,
-        BlockFriendUsecase
+        BlockFriendUsecase,
+        UnblockFriendUsecase
     ]
 })
 export class FriendsModule {}

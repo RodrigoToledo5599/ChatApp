@@ -7,7 +7,10 @@ describe('ConversationsController', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [ConversationsController],
-    }).compile();
+    })
+      // use cases e guard são substituídos por objetos vazios: aqui só importa que o controller seja montado
+      .useMocker(() => ({}))
+      .compile();
 
     controller = module.get<ConversationsController>(ConversationsController);
   });

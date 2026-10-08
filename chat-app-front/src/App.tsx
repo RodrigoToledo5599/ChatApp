@@ -5,9 +5,10 @@ import HomePage from './pages/home/home-page';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import FriendshipPage from './pages/friendship/friendship-page';
 import { CreateAccountPage } from './pages/create-account/create-account-page';
+import { ProtectedRoute } from './components/ProtectedRoute';
 import { Toaster } from 'sonner';
 
-export const queryClient = new QueryClient()
+const queryClient = new QueryClient()
 
 function App() {
   return (
@@ -22,36 +23,14 @@ function App() {
         <QueryClientProvider client={queryClient}>
             <Routes>
               
-              <Route
-                path="/"
-                element = {
-                  <LoginPage/>
-                }
-              />
+              <Route path="/" element={<LoginPage/>} />
+              <Route path="/create-account" element={<CreateAccountPage/>} />
 
-              <Route
-                path="/home"
-                element={<HomePage />}
-              />
-
-              <Route
-                path="/home/:conversationId"
-                element={<HomePage />}
-              />
-
-              <Route
-                path="/friendship"
-                element = {
-                  <FriendshipPage/>
-                }
-              />
-              
-              <Route
-                path="/create-account"
-                element = {
-                  <CreateAccountPage/>
-                }
-              />
+              <Route element={<ProtectedRoute />}>
+                <Route path="/home" element={<HomePage />} />
+                <Route path="/home/:conversationId" element={<HomePage />} />
+                <Route path="/friendship" element={<FriendshipPage/>} />
+              </Route>
 
             </Routes>
         </QueryClientProvider>

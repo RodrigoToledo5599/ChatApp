@@ -1,6 +1,6 @@
 import { Check, Undo2, X } from "lucide-react"
 import type { FriendDto } from "../../../lib/types/friendship.types"
-import { useAcceptOrRefuseFriendshipRequest, useDeleteFriendshipRequest } from "../../../hooks/useFriendship"
+import { useAcceptOrRefuseFriendshipRequest, useDeleteFriendship } from "../../../hooks/useFriendship"
 
 
 type FriendsContainerProps = {
@@ -24,7 +24,7 @@ type FriendsContainerPropsToMe = {
 }
 
 function PendingFriendshipSolicitationsFromMe(data : FriendsContainerPropsFromMe){
-    const {mutate: deleteRequest} = useDeleteFriendshipRequest()
+    const {mutate: deleteFriendship} = useDeleteFriendship()
     return (
         <div>
             <h2>Minhas solicitações</h2>
@@ -51,7 +51,10 @@ function PendingFriendshipSolicitationsFromMe(data : FriendsContainerPropsFromMe
 
                         <div className="flex items-center gap-2 opacity-80 group-hover:opacity-100 transition-opacity">
                             <button
-                                onClick={() => deleteRequest(friend.id)}
+                                onClick={() => deleteFriendship({
+                                    friendshipId: friend.id,
+                                    successMessage: "Pedido de amizade cancelado com sucesso"
+                                })}
                                 title="Desfazer pedido de amizade"
                                 className="p-2.5 bg-zinc-950 border border-zinc-850 text-zinc-400 rounded-xl transition-all
                                     hover:bg-zinc-800 hover:text-red-400"

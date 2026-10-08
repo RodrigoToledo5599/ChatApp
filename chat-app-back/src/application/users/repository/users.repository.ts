@@ -15,27 +15,26 @@ export class UsersRepository{
         })
     }
 
-    async findUsersbyName(namePart: string) : Promise<Users[] | null>{
+    async findUsersByName(namePart: string, excludeUserId: string) : Promise<Users[]>{
         return await this.prisma.users.findMany({
             where:{
+                id: { not: excludeUserId },
                 name:{
                     contains: namePart,
                     mode: 'insensitive'
                 }
             },
-            take: 3
+            take: 5
         })
     }
 
-    async findUsersByEmail(emailPart: string) : Promise<Users[] | null>{
+    async findUsersByExactEmail(email: string, excludeUserId: string) : Promise<Users[]>{
         return await this.prisma.users.findMany({
             where: {
-                email:{
-                    contains: emailPart,
-                    mode: 'insensitive'
-                }
+                id: { not: excludeUserId },
+                email
             },
-            take: 3
+            take: 1
         })
     }
 }

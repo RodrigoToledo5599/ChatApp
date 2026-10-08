@@ -4,7 +4,7 @@ export class AccountCreateResponseDto{
     id: string
     name: string
     email: string
-    phone?: string
+    phone: string | null
 
     constructor(account: Users){
         this.id = account.id

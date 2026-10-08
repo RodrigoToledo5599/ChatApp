@@ -1,10 +1,11 @@
-import { Controller, Get, Param, UseGuards } from "@nestjs/common";
+import { Controller, Get, Param, ParseUUIDPipe, Query, UseGuards } from "@nestjs/common";
+import { Throttle } from "@nestjs/throttler";
 import { AuthGuard } from "../../../middleware/guards/auth.guard";
+import { User } from "../../../middleware/decorators/user.decorator";
 import { FindUserByIdUsecase } from "../usecases/find-user-by-id.usecase";
-import { FindUserByEmailUsecase } from "../usecases/find-user-by-email.usecase";
-import { FindUserByNameUsecase } from "../usecases/find-user-by-name.usecase";
+import { SearchUsersUsecase } from "../usecases/search-users.usecase";
 import { UserDto } from "../dto/user.dto";
-import { ApiOkResponse, ApiParam } from "@nestjs/swagger";
+import { ApiOkResponse, ApiParam, ApiQuery } from "@nestjs/swagger";
 
 
 @UseGuards(AuthGuard)
@@ -13,33 +14,25 @@ export class UsersController{
 
     constructor(
         private findUserByIdUsecase: FindUserByIdUsecase,
-        private findUserByEmailUsecase: FindUserByEmailUsecase,
-        private findUserByNameUsecase: FindUserByNameUsecase
+        private searchUsersUsecase: SearchUsersUsecase
     ){}
 
-    @ApiParam({name: 'name', type: String})
+    @Throttle({ default: { limit: 20, ttl: 60_000 } })
+    @ApiQuery({name: 'q', type: String, description: 'parte do nome ou e-mail exato'})
     @ApiOkResponse({type: [UserDto]})
-    @Get('name=:name')
-    async searchUsersByName(
-        @Param('name') name: string
+    @Get('search')
+    async searchUsers(
+        @User() user,
+        @Query('q') q: string
     ): Promise<UserDto[]>{
-        return await this.findUserByNameUsecase.execute(name)
-    }
-
-    @ApiParam({name: 'email', type: String})
-    @ApiOkResponse({type: [UserDto]})
-    @Get('email=:email')
-    async searchUsersByEmail(
-        @Param('email') email: string
-    ): Promise<UserDto[]>{
-        return await this.findUserByEmailUsecase.execute(email)
+        return await this.searchUsersUsecase.execute(user.id, q)
     }
 
     @ApiParam({name: 'id', type: String})
     @ApiOkResponse({type: UserDto})
-    @Get('id=:id')
+    @Get(':id')
     async searchUsersById(
-        @Param('id') id: string
+        @Param('id', ParseUUIDPipe) id: string
     ): Promise<UserDto>{
         return await this.findUserByIdUsecase.execute(id)
     }

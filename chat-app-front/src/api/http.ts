@@ -7,9 +7,9 @@ export const http = axios.create({
 
 
 let isRefreshing = false;
-let failedQueue: any[] = [];
+let failedQueue: { resolve: (value: unknown) => void, reject: (reason?: unknown) => void }[] = [];
 
-const processQueue = (error: any, token: string | null = null) => {
+const processQueue = (error: unknown, token: string | null = null) => {
   failedQueue.forEach((prom) => {
     if (token) {
       prom.resolve(token);
@@ -26,7 +26,8 @@ http.interceptors.response.use(
     const originalRequest = error.config;
 
     const isAuthRoute = originalRequest.url?.includes('auth/refresh-token') || 
-                        originalRequest.url?.includes('auth/login');
+                        originalRequest.url?.includes('auth/login') ||
+                        originalRequest.url?.includes('auth/logout');
 
     if (error.response?.status === 401 && isAuthRoute) {
       return Promise.reject(error);

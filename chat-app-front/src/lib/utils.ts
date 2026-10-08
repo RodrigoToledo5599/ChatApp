@@ -1,5 +1,15 @@
+import axios from "axios"
 
 
+// extrai a mensagem de erro do back (o ValidationPipe devolve uma lista de mensagens)
+export function getApiErrorMessage(error: unknown, fallback: string): string {
+  if (axios.isAxiosError(error)) {
+    const message = error.response?.data?.message
+    if (Array.isArray(message) && message.length > 0) return message.join("\n")
+    if (typeof message === "string" && message) return message
+  }
+  return fallback
+}
 
 export default function UTCtoNormalVisualDate(dateStr: string){
   if (!dateStr) return ""

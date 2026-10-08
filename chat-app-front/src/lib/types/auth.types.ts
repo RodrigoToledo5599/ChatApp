@@ -13,12 +13,4 @@ export interface User{
 
 export interface UserLoginReturn {
   user: User
-  access_token: string
-  refresh_token: string
-}
-
-export interface LoginReturn {
-  user: UserLoginReturn
-  access_token: string
-  refresh_token: string
 }

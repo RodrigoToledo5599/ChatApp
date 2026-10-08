@@ -63,7 +63,7 @@ async function main() {
     }
     console.log('✅ Seeded users!');
 
-    const friendships = [
+    const friendships: { senderId: string, receiverId: string, status: FriendshipStatus, blockedById?: string }[] = [
         { senderId: id_users.rodrigo, receiverId: id_users.jonatas, status: FriendshipStatus.ACCEPTED },
         { senderId: id_users.rodrigo, receiverId: id_users.mariana, status: FriendshipStatus.PENDING },
         { senderId: id_users.amanda, receiverId: id_users.rodrigo, status: FriendshipStatus.ACCEPTED },
@@ -72,7 +72,7 @@ async function main() {
         { senderId: id_users.mariana, receiverId: id_users.beatriz, status: FriendshipStatus.ACCEPTED },
         { senderId: id_users.thiago, receiverId: id_users.amanda, status: FriendshipStatus.PENDING },
         { senderId: id_users.beatriz, receiverId: id_users.rodrigo, status: FriendshipStatus.PENDING },
-        { senderId: id_users.carlos, receiverId: id_users.thiago, status: FriendshipStatus.BLOCKED },
+        { senderId: id_users.carlos, receiverId: id_users.thiago, status: FriendshipStatus.BLOCKED, blockedById: id_users.carlos },
     ];
 
     for (const friend of friendships) {
@@ -83,11 +83,12 @@ async function main() {
                     receiverId: friend.receiverId
                 }
             },
-            update: { status: friend.status },
+            update: { status: friend.status, blockedById: friend.blockedById ?? null },
             create: {
                 senderId: friend.senderId,
                 receiverId: friend.receiverId,
-                status: friend.status
+                status: friend.status,
+                blockedById: friend.blockedById ?? null
             }
         });
     }
@@ -101,13 +102,16 @@ async function main() {
     ];
 
     for (const chat of conversationsToSeed) {
+        // mesma chave usada pelo GetFriendConversationUsecase para achar a conversa direta
+        const directKey = chat.isGroup ? null : [...chat.userIds].sort().join(':');
         await prisma.conversations.upsert({
             where: { id: chat.id },
-            update: { title: chat.title },
+            update: { title: chat.title, directKey },
             create: {
                 id: chat.id,
                 title: chat.title,
-                isGroup: chat.isGroup
+                isGroup: chat.isGroup,
+                directKey
             }
         });
 
@@ -596,10 +600,14 @@ async function main() {
             }
         ];
 
+        // apaga as mensagens das conversas do seed antes de inserir, para o seed poder rodar mais de uma vez sem duplicar
+        const seededConversationIds = Object.values(id_conversations);
+        await messagesCollection.deleteMany({ conversationId: { $in: seededConversationIds } });
+
         console.log(`📦 Inserindo ${mockMessages.length} mensagens no MongoDB...`);
         await messagesCollection.insertMany(mockMessages);
 
-        await messagesCollection.createIndex({ conversationId: 1, createdAt: -1 });
+        await messagesCollection.createIndex({ conversationId: 1, createdAt: -1, _id: -1 });
         console.log('✅ Seed do MongoDB executado com sucesso e índices garantidos!');
 
     } catch (mongoError) {

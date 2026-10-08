@@ -2,6 +2,7 @@ import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tansta
 import { TanStackKeys } from "../lib/tan-stack-keys";
 import { conversationService } from "../api/services/conversation.service";
 import type { ConversationMessagesRequestDto } from "../lib/types/conversations.types";
+import { getApiErrorMessage } from "../lib/utils";
 import { toast } from "sonner";
 
 export function useGetUserConversations(){
@@ -24,31 +25,25 @@ export function useCreateGroupConversation() {
     },
     onError: (error) => {
       console.error('Erro ao criar grupo:', error);
-      toast.error('Não foi possível criar o grupo.');
+      toast.error(getApiErrorMessage(error, 'Não foi possível criar o grupo.'));
     },
   });
 }
 
-export function useGetUserConversationMessages(params: ConversationMessagesRequestDto) {
+export function useGetUserConversationMessages(params: Omit<ConversationMessagesRequestDto, "cursor">) {
   return useInfiniteQuery({
     queryKey: [TanStackKeys.conversation, params.conversationId],
     queryFn: ({ pageParam }) => {
       return conversationService.getConversationMessages({
         ...params,
-        oldestMessageDate: pageParam, 
+        cursor: pageParam, 
       })
     },
     initialPageParam: undefined as string | undefined,
-    getNextPageParam: (lastPage) => {
-      return lastPage.oldestMessageDate || undefined
-    },
-    staleTime: 60000, // 10 minutos
+    getNextPageParam: (lastPage) => lastPage.nextCursor,
+    staleTime: 60_000, // 1 minuto; mensagens novas chegam pelo socket
     refetchOnWindowFocus: false,
     enabled: !!params.conversationId,
     retry: false
   })
 }
-
-
-
-

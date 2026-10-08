@@ -1,4 +1,7 @@
 import { Module } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
+import { ThrottlerModule } from '@nestjs/throttler';
+import { HttpThrottlerGuard } from './middleware/guards/http-throttler.guard';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './application/auth/auth.module';
@@ -15,7 +18,7 @@ import { WebsocketModule } from './infra/websocket/websocket.module';
   imports: [
     MongoModule,
     PrismaModule,
-    MiddlewareModule, 
+    MiddlewareModule,
     AuthModule,
     UsersModule,
     FriendsModule,
@@ -24,10 +27,15 @@ import { WebsocketModule } from './infra/websocket/websocket.module';
     JwtModule.register({
       secret: process.env.SECRET_KEY_JWT,
       global: true,
-      signOptions: { expiresIn: '2h', algorithm: 'HS256' },
+      signOptions: { expiresIn: '15m', algorithm: 'HS256' },
     }),
+    // limite padrão por IP; rotas sensíveis (login, cadastro, busca) têm limites próprios via @Throttle
+    ThrottlerModule.forRoot([{ name: 'default', ttl: 60_000, limit: 120 }]),
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    { provide: APP_GUARD, useClass: HttpThrottlerGuard },
+  ],
 })
 export class AppModule {}

@@ -1,23 +1,30 @@
-"use client"
-
-import { useNavigate } from "react-router-dom"
-import { type FormEvent, useState } from "react"
+import { useNavigate, useSearchParams } from "react-router-dom"
+import { type FormEvent, useEffect, useState } from "react"
 import { z } from "zod";
 import { toast } from "sonner"
 import { FormInputField } from "../../components/FormInputField"
 import type { LoginParams } from "../../lib/types/auth.types"
-import axios from "axios"
 import { useLogin } from "../../hooks/useAuth"
+import { getApiErrorMessage } from "../../lib/utils"
 import { MessageSquareCode, ArrowRight } from "lucide-react"
 
 export function LoginPage() {
   const { mutateAsync: login, isPending } = useLogin()
   const router = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
   const [form, setForm] = useState({ email: "", password: "" })
+
+  // o interceptor do http redireciona para /?session=expired quando o refresh falha
+  useEffect(() => {
+    if (searchParams.get("session") === "expired") {
+      toast.info("Sua sessão expirou. Entre novamente.")
+      setSearchParams({}, { replace: true })
+    }
+  }, [searchParams, setSearchParams])
 
   const [errors, setErrors] = useState<Record<string, string>>({})
 
-  const createAccountSchema = z.object({      
+  const loginSchema = z.object({      
     email: z
       .string()
       .min(1, "O e-mail é obrigatório"),
@@ -31,7 +38,8 @@ export function LoginPage() {
   const handleLogin = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     
-    const validation = createAccountSchema.safeParse(form)
+    setErrors({})
+    const validation = loginSchema.safeParse(form)
 
     if (!validation.success) {
       const formattedErrors: Record<string, string> = {}
@@ -51,15 +59,7 @@ export function LoginPage() {
       await login(params)
       router("/home")
     } catch (err: unknown) {
-      let errorMessage = "Credenciais inválidas"
-
-      if (axios.isAxiosError(err)) {
-        errorMessage = err.response?.data?.message || err.message
-      } else if (err instanceof Error) {
-        errorMessage = err.message
-      }
-
-      toast.error(errorMessage)
+      toast.error(getApiErrorMessage(err, "Não foi possível entrar. Tente novamente."))
     }
   }
 

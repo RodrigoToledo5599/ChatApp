@@ -3,8 +3,11 @@ import { useState } from "react";
 import type { KeyboardEvent } from "react";
 
 
+// mesmo limite do back
+const MAX_MESSAGE_LENGTH = 2000
+
 interface ChatInputMessageProps {
-    sendMessage: any,
+    sendMessage: (params: { conversationId: string, content: string }) => void,
     conversationId: string; 
 }
 
@@ -36,12 +39,13 @@ export default function ChatInputMessage({ sendMessage, conversationId }: ChatIn
                 onChange={(e) => setMessage(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="Digite uma mensagem"
+                maxLength={MAX_MESSAGE_LENGTH}
                 className="flex-1 rounded-lg bg-background px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none border"
             />
             <button
                 onClick={() => handleSend()}
                 type="button"
-                aria-label={message ? "Enviar" : "Gravar áudio"}
+                aria-label="Enviar"
                 className="rounded-full p-2 text-muted-foreground hover:bg-accent hover:text-foreground"
             >
                 <SendHorizontal size={24} />

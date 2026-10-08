@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseUUIDPipe, Post, Query, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '../../../middleware/guards/auth.guard';
 import { User } from '../../../middleware/decorators/user.decorator';
 import { GetUserConversationsUsecase } from '../usecases/get-user-conversations.usecase';
@@ -7,8 +7,9 @@ import { GetConversationMessagesUsecase } from '../usecases/get-conversation-mes
 import { ConversationMessagesRequestDto, ConversationMessagesResponseDto, MessageDto, MessageDtoRequest } from '../dto/conversation-messages';
 import { SendMessageUsecase } from '../usecases/send-message.usecase';
 import { GetFriendConversationUsecase } from '../usecases/get-friend-conversation.usecase';
-import { ApiBody, ApiOkResponse, ApiParam, ApiQuery } from '@nestjs/swagger';
-import { CreateGroupConversationInputDto, CreateGroupConversationUsecase } from '../usecases/create-group-conversation.usecase';
+import { ApiBody, ApiOkResponse, ApiParam } from '@nestjs/swagger';
+import { CreateGroupConversationUsecase } from '../usecases/create-group-conversation.usecase';
+import { CreateGroupConversationInputDto } from '../dto/create-group-conversation.dto';
 
 
 @UseGuards(AuthGuard)
@@ -33,7 +34,6 @@ export class ConversationsController {
 
 
     @ApiOkResponse({type: ConversationMessagesResponseDto})
-    @ApiQuery({type: ConversationMessagesRequestDto})
     @Get('messages')
     async getConversationMessages(
         @User() user,
@@ -58,12 +58,13 @@ export class ConversationsController {
     @Get('friend-conversation/:friendId')
     async getFriendConversation(
         @User() user,
-        @Param() param
+        @Param('friendId', ParseUUIDPipe) friendId: string
     ){
-        return await this.getFriendConversationUsecase.execute(user.id, param.friendId)
+        return await this.getFriendConversationUsecase.execute(user.id, friendId)
     }
 
     @ApiOkResponse({type: ConversationDto})
+    @ApiBody({type: CreateGroupConversationInputDto})
     @Post('group')
     async createGroupConversation(
         @User() user,

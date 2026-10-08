@@ -2,6 +2,7 @@ import * as dotenv from 'dotenv';
 dotenv.config();
 import { Injectable, OnModuleInit, OnModuleDestroy, Global } from '@nestjs/common';
 import { MongoClient, Db } from 'mongodb';
+import { MongoCollections } from './mongo.collections';
 
 @Global()
 @Injectable()
@@ -19,6 +20,10 @@ export class MongoService implements OnModuleInit, OnModuleDestroy {
       await this.client.connect();
       this.db = this.client.db('chat-app');
       console.log('✅ [MongoService] MongoDB do Docker conectado com sucesso!');
+      // índice usado pela paginação de mensagens (idempotente: não recria se já existir)
+      await this.db
+        .collection(MongoCollections.Messages)
+        .createIndex({ conversationId: 1, createdAt: -1, _id: -1 });
     } catch (error) {
       console.error('❌ [MongoService] Erro crítico: Não conseguiu falar com o Docker!');
       console.error(error);

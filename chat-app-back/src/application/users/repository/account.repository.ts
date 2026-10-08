@@ -18,13 +18,13 @@ export class AccountRepository{
         })
     }
 
-    async createAccount(data: AccountCreateRequestDto): Promise<Users | null>{
+    async createAccount(data: AccountCreateRequestDto): Promise<Users>{
         return await this.prisma.users.create({
             data: {
                 name: data.name,
                 email: data.email,
                 password: data.password,
-                phone: data.phone ?? "",
+                phone: data.phone ?? null,
             }
         })
     }

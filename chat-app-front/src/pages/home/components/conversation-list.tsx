@@ -1,18 +1,15 @@
-"use client"
-
-import { useState } from "react"
 import type { ConversationReturn } from "../../../lib/types/conversations.types"
 import { Loader2 } from 'lucide-react'
+import { getConversationName } from "../conversation-name"
 
 interface ConversationListProps {
   conversations: ConversationReturn[] | undefined
   loadingConversations: boolean,
-  selectConversation: (conversationId: string) => Promise<void>
+  selectedConversationId?: string,
+  selectConversation: (conversationId: string) => void
 }
 
-export function ConversationList({ conversations, loadingConversations, selectConversation }: ConversationListProps) {
-
-  const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
+export function ConversationList({ conversations, loadingConversations, selectedConversationId, selectConversation }: ConversationListProps) {
 
   return (
     <div className="flex-1 overflow-y-auto custom-scrollbar">
@@ -29,19 +26,14 @@ export function ConversationList({ conversations, loadingConversations, selectCo
         ) : (
           <nav className="flex-1 overflow-y-auto px-2 pb-4 space-y-1 custom-scrollbar">
             {conversations.map((conv) => {
-              const chatName = conv.conversation.isGroup
-                ? conv.conversation.title
-                : conv.conversation.users[0]?.user?.name ?? "Usuário"
+              const chatName = getConversationName(conv.conversation)
 
               const initial = chatName ? chatName.charAt(0).toUpperCase() : "?"
 
               return (
                 <button
                   key={conv.conversation.id}
-                  onClick={() => {
-                    setSelectedConversationId(conv.conversation.id);
-                    selectConversation(conv.conversation.id);
-                  }}
+                  onClick={() => selectConversation(conv.conversation.id)}
                   type="button"
                   className=
                   { conv.conversation.id === selectedConversationId ? 

@@ -2,12 +2,19 @@ import { Loader2 } from "lucide-react"
 import { useGetUserConversationMessages } from "../../../hooks/useConversation"
 import PageDescriptionWithNoConversationSelected from "./page-description-with-no-conversation-selected"
 import ChatInputMessage from "./chat-input-message"
+import ChatHeader from "./chat-header"
 import UTCtoNormalVisualDate from "../../../lib/utils"
 import { useMessagesUpdate, useSendMessage } from "../../../hooks/useMessagesUpdate"
 import { useEffect, useRef } from "react"
 
 
-export function Chat({ conversationId }: { conversationId: string}) {
+interface ChatProps {
+  conversationId: string
+  conversationName: string
+  isGroup: boolean
+}
+
+export function Chat({ conversationId, conversationName, isGroup }: ChatProps) {
 
   const { 
     data, 
@@ -15,13 +22,14 @@ export function Chat({ conversationId }: { conversationId: string}) {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage
-  } = useGetUserConversationMessages({ conversationId, limit: "10" })
+  } = useGetUserConversationMessages({ conversationId, limit: 10 })
   const { mutate: SendMessage } = useSendMessage()
   useMessagesUpdate(conversationId)
   
   const allMessages = data 
   ? [...data.pages].reverse().flatMap(page => page.data) 
   : []
+  const currentUserId = data?.pages[0]?.userId
   
   const prevMessagesCountRef = useRef(allMessages.length)
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -41,7 +49,7 @@ export function Chat({ conversationId }: { conversationId: string}) {
   }, [allMessages.length])
 
 
-
+  if (!conversationId) return <PageDescriptionWithNoConversationSelected/>
 
   if (isLoading) return (
     <div className="w-full h-full flex items-center justify-center">
@@ -49,18 +57,13 @@ export function Chat({ conversationId }: { conversationId: string}) {
     </div>
   )
 
-  if (isLoading) return 
-  <div className="w-full h-full flex items-center justify-center">
-    <Loader2 className="animate-spin w-16 h-16 text-emerald-500"/>
-  </div>
-
-  if (isLoading == false && !conversationId) return <PageDescriptionWithNoConversationSelected/>
-
   return (
     <div className="flex flex-1 flex-col h-full">
+
+      <ChatHeader conversationName={conversationName} isGroup={isGroup} />
       
       <div className="overflow-y-auto px-4 space-y-2 flex-1">
-        <div className="flex justify-center p-4 f">
+        <div className="flex justify-center p-4">
           {hasNextPage ? (
             <button 
               onClick={() => fetchNextPage()}
@@ -73,42 +76,35 @@ export function Chat({ conversationId }: { conversationId: string}) {
             <span className="text-xs text-zinc-600">Início da conversa</span>
           )}
         </div>
-        <div className="">
-          {allMessages.map((msg) => (
-            <div key={msg._id} 
-              className={`text-sm p-2
-              ${msg.userId == data!.pages[0].userId ?
-                "flex flex-col items-end"
-                :
-                "flex flex-col items-start"
-              }
-              `}
-            >
-              <div className={`flex flex-col gap-2 border border-zinc-400
-                ${msg.userId == data!.pages[0].userId ? "bg-green-900":"bg-cyan-950"}
-                  px-5 pt-3 rounded-3xl
-                `}>
-                <div className="">
-                  {msg.content}
-                </div>
-                {/* { data!.pages[0].isGroup === true?
-                  <div className="w-full font-bold  flex flex-wrap">
-                    {msg.userName}
+        <div>
+          {allMessages.map((msg) => {
+            const isMine = msg.userId === currentUserId
+
+            return (
+              <div key={msg._id} 
+                className={`text-sm p-2 flex flex-col ${isMine ? "items-end" : "items-start"}`}
+              >
+                <div className={`flex flex-col gap-2 border border-zinc-400 max-w-[75%]
+                  ${isMine ? "bg-green-900":"bg-cyan-950"}
+                    px-5 pt-3 rounded-3xl
+                  `}>
+                  {isGroup && !isMine && (
+                    <div className="font-bold text-emerald-300 text-xs">
+                      {msg.userName}
+                    </div>
+                  )}
+                  <div className="whitespace-pre-wrap break-words">
+                    {msg.content}
                   </div>
-                  :
-                  <div></div>
-                } */}
-                <div className={`w-full font-bold flex flex-row
-                  ${
-                    msg.userId == data!.pages[0].userId ? "justify-end":"justify-start"
-                  }
-                    pb-2  w-[45%] rounded-lg`
-                  }>
-                    {UTCtoNormalVisualDate(msg.createdAt.toString()).replace(",","")}
+                  <div className={`w-full font-bold flex flex-row pb-2 text-xs text-zinc-300
+                    ${isMine ? "justify-end":"justify-start"}`
+                    }>
+                      {UTCtoNormalVisualDate(msg.createdAt).replace(",","")}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
         <div ref={messagesEndRef} />
       </div>

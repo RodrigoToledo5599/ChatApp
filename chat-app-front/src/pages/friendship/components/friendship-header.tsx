@@ -6,6 +6,8 @@ import { useSendFriendshipRequest } from "../../../hooks/useFriendship";
 import AddFriendModal from "./add-friend-modal";
 import CreateGroupModal from "./create-group-modal";
 import { useCreateGroupConversation } from "../../../hooks/useConversation";
+import { getApiErrorMessage } from "../../../lib/utils";
+import { toast } from "sonner";
 
 type FriendProps = {
     listedFriends?: FriendDto[]
@@ -21,22 +23,25 @@ export default function FriendShipHeader({ listedFriends }: FriendProps) {
     const { mutate: createGroupConversation, isPending: isCreatingGroup } = useCreateGroupConversation();
 
     const handleSearch = async () => {
-        const data = await friendshipService.searchForAFriend(searchQuery.trim());
-        if(!data)
-            return 
-        else
-            setData(data)
+        try {
+            setData(await friendshipService.searchForAFriend(searchQuery.trim()))
+        } catch (error) {
+            toast.error(getApiErrorMessage(error, "Não foi possível buscar usuários"))
+        }
     }
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
-            if (e.key === "Escape") setIsFriedModalOpen(false);
+            if (e.key === "Escape") {
+                setIsFriedModalOpen(false);
+                setIsGroupModalOpen(false);
+            }
         };
-        if (isFriedModalOpen) {
+        if (isFriedModalOpen || isGroupModalOpen) {
             window.addEventListener("keydown", handleKeyDown);
         }
         return () => window.removeEventListener("keydown", handleKeyDown);
-    }, [isFriedModalOpen]);
+    }, [isFriedModalOpen, isGroupModalOpen]);
 
     return (
         <>
@@ -75,7 +80,7 @@ export default function FriendShipHeader({ listedFriends }: FriendProps) {
                 <AddFriendModal 
                     isFriedModalOpen={isFriedModalOpen} 
                     setIsFriedModalOpen={setIsFriedModalOpen} 
-                    searchQuery={searchQuery ?? []} 
+                    searchQuery={searchQuery} 
                     setSearchQuery={setSearchQuery} 
                     data={data} 
                     sendFriendshipRequest={sendFriendshipRequest} 
@@ -89,8 +94,10 @@ export default function FriendShipHeader({ listedFriends }: FriendProps) {
                     setIsGroupModalOpen={setIsGroupModalOpen}
                     friends={listedFriends ?? []}
                     onCreateGroup={(title, memberIds) => {
-                        createGroupConversation({ title, memberIds });
-                        setIsGroupModalOpen(false);
+                        // só fecha se der certo, para não perder o que foi preenchido
+                        createGroupConversation({ title, memberIds }, {
+                            onSuccess: () => setIsGroupModalOpen(false),
+                        });
                     }}
                     isCreatingGroup={isCreatingGroup}
                 />

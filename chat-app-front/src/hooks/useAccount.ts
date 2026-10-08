@@ -5,20 +5,13 @@ import type {CreateAccountRequestSend } from "../lib/types/create-account.types"
 
 
 
+// o erro é exibido pela página, que mostra a mensagem do servidor
 export function useCreateAccount(){
 
     return useMutation({
-        mutationFn: (params: CreateAccountRequestSend) =>{
-            const data = accountService.createAccount(params)
-            return data
-        }, 
-            
+        mutationFn: (params: CreateAccountRequestSend) => accountService.createAccount(params), 
         onSuccess: () => {
             toast.success("Conta criada com sucesso! 🎉") 
         },
-        onError: (error) => {
-           console.error("", error)
-           toast.error("Erro ao se comunicar com o servidor")
-        }
     })
 }

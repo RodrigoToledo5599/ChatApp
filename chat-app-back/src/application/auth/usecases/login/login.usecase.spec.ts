@@ -1,73 +1,62 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { LoginUseCase } from './login.usecase';
-import { AuthRepository } from '../../repository/auth.repository';
-import { GenerateTokenUtils } from '../../../../utils/jwt/generate-token-utils';
+import { UnauthorizedException } from '@nestjs/common';
+import argon2 from 'argon2';
+import { LoginUsecase } from './login.usecase';
 import { LoginRequestDto } from '../../dto/login-request.dto';
 
-describe('LoginUseCase', () => {
-  let loginUseCase: LoginUseCase;
-  let authRepositoryMock: AuthRepository;
-  let tokenUtilsMock: GenerateTokenUtils;
+describe('LoginUsecase', () => {
+  const user = {
+    id: 'afcc40d2-ed37-4f7e-8748-723b8adb9b54',
+    name: 'Rodrigo Toledo',
+    email: 'rod@gmail.com',
+    phone: null,
+    password: '',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  };
 
-  beforeEach(async () => {
-    const mockAuthRepository = {
+  let repo: { findUserByEmail: jest.Mock; createSession: jest.Mock };
+  let tokenUtils: { generateAuthAndRefreshTokenForUser: jest.Mock; generateRefreshTokenHash: jest.Mock };
+  let usecase: LoginUsecase;
+
+  beforeAll(async () => {
+    user.password = await argon2.hash('123');
+  });
+
+  beforeEach(() => {
+    repo = {
       findUserByEmail: jest.fn(),
-      findAdminByEmail: jest.fn(),
-      saveRefreshToken: jest.fn(),
+      createSession: jest.fn().mockResolvedValue({}),
     };
-
-    const mockTokenUtils = {
-      generateAccessToken: jest.fn(),
-      generateRefreshToken: jest.fn(),
+    tokenUtils = {
+      generateAuthAndRefreshTokenForUser: jest.fn().mockReturnValue({
+        user: { id: user.id, name: user.name, email: user.email },
+        access_token: 'access',
+        refresh_token: 'refresh',
+      }),
+      generateRefreshTokenHash: jest.fn().mockResolvedValue('refresh-hash'),
     };
-
-    const moduleRef = await Test.createTestingModule({
-      providers: [
-        LoginUseCase,
-        {
-          provide: AuthRepository,
-          useValue: mockAuthRepository,
-        },
-        {
-          provide: GenerateTokenUtils,
-          useValue: mockTokenUtils,
-        },
-      ],
-    }).compile();
-
-    loginUseCase = moduleRef.get<LoginUseCase>(LoginUseCase);
-    authRepositoryMock = moduleRef.get<AuthRepository>(AuthRepository);
-    tokenUtilsMock = moduleRef.get<GenerateTokenUtils>(GenerateTokenUtils);
+    usecase = new LoginUsecase(repo as any, tokenUtils as any);
   });
 
-  afterEach(() => {
-    jest.clearAllMocks();
+  it('cria uma sessão e retorna os tokens quando as credenciais são válidas', async () => {
+    repo.findUserByEmail.mockResolvedValue(user);
+
+    const result = await usecase.execute(new LoginRequestDto('rod@gmail.com', '123'));
+
+    expect(result.user).toEqual({ id: user.id, name: user.name, email: user.email });
+    const sessionId = tokenUtils.generateAuthAndRefreshTokenForUser.mock.calls[0][1];
+    expect(repo.createSession).toHaveBeenCalledWith(sessionId, user.id, 'refresh-hash', expect.any(Date));
   });
 
+  it('retorna a mesma mensagem para senha errada e usuário inexistente', async () => {
+    repo.findUserByEmail.mockResolvedValueOnce(user);
+    const wrongPassword = usecase.execute(new LoginRequestDto('rod@gmail.com', 'errada'));
+    await expect(wrongPassword).rejects.toThrow(new UnauthorizedException('E-mail ou senha inválidos'));
 
+    repo.findUserByEmail.mockResolvedValueOnce(null);
+    const unknownUser = usecase.execute(new LoginRequestDto('ninguem@gmail.com', '123'));
+    await expect(unknownUser).rejects.toThrow(new UnauthorizedException('E-mail ou senha inválidos'));
 
-  describe('execute', () => {
-    it('Deve retornar os dados do usuário e os tokens se as credenciais forem válidas', async () => {
-
-      const mockedParams = { email: 'rod@gmail.com', password: '123' };      
-
-      const params = new LoginRequestDto(mockedParams.email, mockedParams.password);
-      const result = await loginUseCase.execute(params);
-
-      expect(result.user).toEqual({
-        user: {
-          id: "afcc40d2-ed37-4f7e-8748-723b8adb9b54",
-          email: 'rod@gmail.com',
-          name: 'Rodrigo Toledo',
-          role: 'DONO',
-          clinicId: 'b7f4f8d4-6d6d-4f6f-9b44-2a7d5d8c3e91'
-        },
-      });
-
-    });
+    expect(repo.createSession).not.toHaveBeenCalled();
   });
-
-
-
-
 });

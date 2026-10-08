@@ -1,14 +1,28 @@
-import { Body, Controller, Post, Res, Req, UseGuards, Get, UnauthorizedException } from '@nestjs/common';
+import { Body, Controller, Post, Res, Req, UseGuards, Get, HttpCode } from '@nestjs/common';
 import express from 'express';
+import { Throttle } from '@nestjs/throttler';
 import { LoginRequestDto } from './../dto/login-request.dto';
 import { LoginUsecase } from './../usecases/login/login.usecase';
 import { TokenRefreshUseCase } from '../usecases/token-refresh/token-refresh.usecase';
+import { LogoutUsecase } from '../usecases/logout/logout.usecase';
 import { ApiBody, ApiOkResponse } from '@nestjs/swagger';
-import { LoginResponseDto } from '../dto/login-response.dto';
-import { RefreshTokenDto } from '../dto/refresh-token.dto';
+import { AuthUserResponseDto } from '../dto/auth-user-response.dto';
 import { RefreshGuard } from '../../../middleware/guards/refresh.guard';
 import { AuthGuard } from '../../../middleware/guards/auth.guard';
 import { User } from '../../../middleware/decorators/user.decorator';
+import { ACCESS_TOKEN_TTL_MS, REFRESH_TOKEN_TTL_MS } from '../utils/generate-token-utils';
+
+
+const isProduction = process.env.NODE_ENV === 'production';
+
+const baseCookieOptions: express.CookieOptions = {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: 'lax',
+};
+
+// o refresh token só é enviado para as rotas /auth (refresh e logout)
+const refreshCookieOptions: express.CookieOptions = { ...baseCookieOptions, path: '/auth' };
 
 
 @Controller('auth')
@@ -16,70 +30,53 @@ export class AuthController {
 
     constructor(
         private readonly loginUseCase: LoginUsecase,
-        private readonly tokenRefreshUseCase: TokenRefreshUseCase
+        private readonly tokenRefreshUseCase: TokenRefreshUseCase,
+        private readonly logoutUseCase: LogoutUsecase
     ) { }
 
-    @ApiOkResponse({type: LoginResponseDto})
+    private setAuthCookies(res: express.Response, accessToken: string, refreshToken: string) {
+        res.cookie('accessToken', accessToken, { ...baseCookieOptions, maxAge: ACCESS_TOKEN_TTL_MS });
+        res.cookie('refreshToken', refreshToken, { ...refreshCookieOptions, maxAge: REFRESH_TOKEN_TTL_MS });
+    }
+
+    @Throttle({ default: { limit: 5, ttl: 60_000 } })
+    @ApiOkResponse({type: AuthUserResponseDto})
     @ApiBody({type: LoginRequestDto})
+    @HttpCode(200)
     @Post('login')
     async login(
-        @Body() params: LoginRequestDto, @Res({ passthrough: true }) res: express.Response) :Promise<LoginResponseDto> {
+        @Body() params: LoginRequestDto, @Res({ passthrough: true }) res: express.Response) :Promise<AuthUserResponseDto> {
 
-        var loginResponse = await this.loginUseCase.execute(params);
-
-        if (loginResponse) {
-            res.cookie('accessToken', loginResponse!.access_token, {
-                httpOnly: true,
-                secure: false,
-                sameSite: 'lax',
-                maxAge: 900000  // 15 minutos
-                // maxAge: 5000 // 5 segundos
-            });
-            res.cookie('refreshToken', loginResponse!.refresh_token, {
-                httpOnly: true,
-                secure: false,
-                sameSite: 'lax',
-                path: '/auth/refresh-token',
-                maxAge: 3600000 * 24 * 15 // 15 dias
-                // maxAge: 5000 // 5 segundos
-            });
-            return loginResponse;
-        }
-        return loginResponse;
+        const loginResponse = await this.loginUseCase.execute(params);
+        this.setAuthCookies(res, loginResponse.access_token, loginResponse.refresh_token);
+        return new AuthUserResponseDto(loginResponse.user);
     }
 
     @UseGuards(RefreshGuard)
-    @ApiOkResponse({type: RefreshTokenDto})
+    @ApiOkResponse({type: AuthUserResponseDto})
+    @HttpCode(200)
     @Post('refresh-token')
-    async refreshToken(@Req() request: express.Request, @Res({ passthrough: true }) res: express.Response) : Promise<RefreshTokenDto> {
-        const refreshToken = request['refresh']
-        
-        var result = await this.tokenRefreshUseCase.execute(refreshToken)
-        if(result){
-            res.cookie('accessToken', result.access_token, {
-                httpOnly: true,
-                secure: false,
-                sameSite: 'lax',
-                maxAge: 900000  // 15 minutos
-                // maxAge: 5000 // 5 segundos
-            });
-            res.cookie('refreshToken', result.refresh_token, {
-                httpOnly: true,
-                secure: false,
-                sameSite: 'lax',
-                path: '/auth/refresh-token',
-                maxAge: 3600000 * 24 * 15
-                // maxAge: 5000 // 5 segundos
-            });
-        }
-        return result
+    async refreshToken(@Req() request: express.Request, @Res({ passthrough: true }) res: express.Response) : Promise<AuthUserResponseDto> {
+        const result = await this.tokenRefreshUseCase.execute(request['refresh'], request['user'])
+        this.setAuthCookies(res, result.access_token, result.refresh_token);
+        return new AuthUserResponseDto(result.user)
+    }
+
+    @HttpCode(204)
+    @Post('logout')
+    async logout(@Req() request: express.Request, @Res({ passthrough: true }) res: express.Response): Promise<void> {
+        await this.logoutUseCase.execute(request.cookies?.refreshToken);
+        res.clearCookie('accessToken', baseCookieOptions);
+        res.clearCookie('refreshToken', refreshCookieOptions);
+        // cookie antigo, de quando o refresh usava esse path
+        res.clearCookie('refreshToken', { ...baseCookieOptions, path: '/auth/refresh-token' });
     }
 
     @Get('me')
     @UseGuards(AuthGuard)
     getProfile(
         @User() user) {
-        return user; 
+        return { id: user.id, name: user.name, email: user.email };
     }
 
 }

@@ -1,10 +1,9 @@
-"use client"
-
 import { useNavigate, useParams } from "react-router-dom"
 import { useMe } from "../../hooks/useAuth"
 import { useGetUserConversations } from "../../hooks/useConversation"
 import { Chat } from "./components/chat"
 import { ConversationsMenu } from "./components/conversations-menu"
+import { getConversationName } from "./conversation-name"
 
 export default function HomePage() {
   const { data: currentUser } = useMe()
@@ -13,7 +12,9 @@ export default function HomePage() {
   const { conversationId } = useParams<{ conversationId: string }>()
   const navigate = useNavigate()
 
-  const handleSelectConversation = async (conversationId: string) => {
+  const selectedConversation = conversations?.find((c) => c.conversation.id === conversationId)?.conversation
+
+  const handleSelectConversation = (conversationId: string) => {
     navigate(`/home/${conversationId}`)
   }
 
@@ -23,9 +24,14 @@ export default function HomePage() {
         currentUser={currentUser}
         data={conversations}
         loadingConversations={loadingConversations}
+        selectedConversationId={conversationId}
         selectConversation={handleSelectConversation}
       />
-      <Chat conversationId={conversationId || ""} />
+      <Chat
+        conversationId={conversationId || ""}
+        conversationName={selectedConversation ? getConversationName(selectedConversation) : ""}
+        isGroup={selectedConversation?.isGroup ?? false}
+      />
     </main>
   )
 }

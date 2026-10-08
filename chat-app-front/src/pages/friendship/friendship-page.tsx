@@ -1,5 +1,3 @@
-"use client"
-
 import { useGetUserFriends } from "../../hooks/useFriendship"
 import { Search } from "lucide-react"
 import { useState } from "react"
@@ -30,6 +28,11 @@ export default function FriendshipPage() {
     friend.status === FriendShipStatus.PENDING && friend.receiverId === user?.id
   ) || [];
 
+  // o back só devolve bloqueios feitos por mim (ou antigos, sem autor registrado)
+  const blockedFriends = listedFriends?.filter(friend => 
+    friend.status === FriendShipStatus.BLOCKED
+  ) || [];
+
   return (
     <main className="flex h-screen w-full overflow-hidden bg-zinc-950 text-zinc-100 antialiased font-sans">
       <div className="flex flex-col flex-1 h-full max-w-5xl mx-auto border-x border-zinc-800 bg-zinc-900/50 dashboard-box">
@@ -54,6 +57,7 @@ export default function FriendshipPage() {
           listedFriends={listedFriendsAcceped}
           filteredPendingFriendshipSolicitationsFromMe= {filteredPendingFriendshipSolicitationsFromMe}
           filteredPendingFriendshipSolicitationsToMe= {filteredPendingFriendshipSolicitationsToMe}
+          blockedFriends={blockedFriends}
           searchTerm={searchTerm}
           isLoading={isLoading}
           user={user}

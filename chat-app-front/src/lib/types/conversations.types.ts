@@ -31,23 +31,24 @@ export interface ConversationMessagesResponseDto {
   data: MessageDto[]
   userId: string
   conversationId:string
-  limit: string
-  oldestMessageDate?: string
+  limit: number
+  // ausente quando não há mensagens mais antigas
+  nextCursor?: string
 }
 
 export interface MessageDto {
-  _id?:any
+  _id: string
   conversationId:string
   userId:string
   userName:string
   content:string
-  createdAt:Date
-  updatedAt:Date
+  createdAt:string
+  updatedAt:string
 }
 
 export interface ConversationMessagesRequestDto {
   conversationId:string
-  limit: string
-  oldestMessageDate?: string
+  limit: number
+  cursor?: string
 }
 

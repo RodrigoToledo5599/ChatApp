@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { MongoService } from '../../../infra/mongo/mongo.service';
 import { PrismaService } from '../../../infra/prisma/prisma.service';
-import { Conversations, Friendship, UsersOnConversations } from '@prisma/client';
-import { ConversationMessagesRequestDto, MessageDto } from '../dto/conversation-messages';
+import { Conversations, Friendship, FriendshipStatus, UsersOnConversations } from '@prisma/client';
+import { MessageDto } from '../dto/conversation-messages';
+import { Filter, ObjectId } from 'mongodb';
 import { MongoCollections } from '../../../infra/mongo/mongo.collections';
 
 @Injectable()
@@ -44,7 +45,7 @@ export class ConversationsRepository {
     return userConversations
   }
 
-  async checkIfUserIsAllowedOnConversation(userId,conversationId): Promise<UsersOnConversations | null>{
+  async checkIfUserIsAllowedOnConversation(userId: string, conversationId: string): Promise<UsersOnConversations | null>{
     return await this.prisma.usersOnConversations.findUnique({
       where:{
         userId_conversationId: { userId, conversationId }
@@ -52,18 +53,55 @@ export class ConversationsRepository {
     })
   }
 
-  async getConversationMessages(params: ConversationMessagesRequestDto) {
-    const conversationId = params.conversationId
-    const query: any = { conversationId };
-    const limit = Number(params.limit) || 20
+  async findFriendshipBetween(userId: string, otherUserId: string): Promise<Friendship | null> {
+    return await this.prisma.friendship.findFirst({
+      where: {
+        OR: [
+          { senderId: userId, receiverId: otherUserId },
+          { senderId: otherUserId, receiverId: userId },
+        ]
+      }
+    })
+  }
 
-    if (params.oldestMessageDate) 
-      query.createdAt = { $lt: new Date(params.oldestMessageDate) };
+  async findAcceptedFriendIds(userId: string, candidateIds: string[]): Promise<string[]> {
+    const friendships = await this.prisma.friendship.findMany({
+      where: {
+        status: FriendshipStatus.ACCEPTED,
+        OR: [
+          { senderId: userId, receiverId: { in: candidateIds } },
+          { receiverId: userId, senderId: { in: candidateIds } },
+        ]
+      },
+      select: { senderId: true, receiverId: true }
+    })
+    return friendships.map((f) => f.senderId === userId ? f.receiverId : f.senderId)
+  }
+
+  async getConversationMembers(conversationId: string) {
+    return await this.prisma.conversations.findUnique({
+      where: { id: conversationId },
+      select: {
+        isGroup: true,
+        users: { select: { userId: true } }
+      }
+    })
+  }
+
+  // mensagens mais recentes primeiro; o cursor (createdAt + _id) aponta para a mais antiga já carregada
+  async getConversationMessages(conversationId: string, limit: number, cursor?: { createdAt: Date, id: ObjectId }) {
+    const query: Filter<MessageDto> = { conversationId };
+
+    if (cursor)
+      query.$or = [
+        { createdAt: { $lt: cursor.createdAt } },
+        { createdAt: cursor.createdAt, _id: { $lt: cursor.id } },
+      ];
 
     return this.mongoService.db
       .collection<MessageDto>(MongoCollections.Messages)
       .find(query)
-      .sort({ createdAt: -1 })
+      .sort({ createdAt: -1, _id: -1 })
       .limit(limit)
       .toArray()
       .then(messages => messages.reverse());
@@ -76,42 +114,23 @@ export class ConversationsRepository {
       .insertOne(newMessage);
 
       return {
-        _id: result.insertedId,
         ...newMessage,
+        _id: result.insertedId,
       };
   }
 
-  async findDirectConversation(userId: string, friendId: string) : Promise<Conversations | null>{
-    return await this.prisma.conversations.findFirst({
-      where: {
-        isGroup: false,
-        users: {
-          every: {
-            userId: { in: [userId, friendId] }
-          }
-        }
-      },
-      include: {
-        users: {
-          include: {
-            user: {
-              select:{
-                id: true,
-                name: true,
-                email: true,
-              }
-            }
-          }
-        }
-      }
+  async findDirectConversation(directKey: string) : Promise<Conversations | null>{
+    return await this.prisma.conversations.findUnique({
+      where: { directKey }
     });
   }
 
-  async createConversationBetween2Users(userId: string, friendId: string) : Promise<Conversations | null>{
+  async createConversationBetween2Users(userId: string, friendId: string, directKey: string) : Promise<Conversations>{
     return await this.prisma.conversations.create({
       data: {
         isGroup: false,
         title: null,
+        directKey,
         users: {
           createMany: {
             data: [
@@ -120,20 +139,11 @@ export class ConversationsRepository {
             ]
           }
         }
-      },
-      include: {
-        users: {
-          select: {
-            user: {
-              select: { id: true, name: true, email: true }
-            }
-          }
-        }
       }
     });
   }
 
-  async createGroupConversation(userId: string, title: string, memberIds: string[]): Promise<Conversations | null> {
+  async createGroupConversation(userId: string, title: string, memberIds: string[]): Promise<Conversations> {
     const uniqueMemberIds = Array.from(new Set([userId, ...memberIds]));
 
     return await this.prisma.conversations.create({

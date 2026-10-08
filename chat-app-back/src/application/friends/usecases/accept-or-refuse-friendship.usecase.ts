@@ -1,49 +1,34 @@
-
-
-
-
-
-
-import { Injectable, InternalServerErrorException, NotFoundException } from "@nestjs/common";
+import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 import { FriendsRepository } from "../repository/friends.repository";
-import { FriendShipRawDto } from "../dto/friendship.dto";
 import { FriendshipStatus } from "@prisma/client";
-
-
-
-
+import { WebSocketMessageService } from "../../../infra/websocket/websocket-message.service";
 
 
 
 @Injectable()
 export class AcceptOrRefuseFriendshiptUsecase{
 
-    
+
     constructor(
-        private friendsRepo: FriendsRepository
+        private friendsRepo: FriendsRepository,
+        private wsService: WebSocketMessageService
     ) {}
 
     async execute(userId: string, friendshipId: string, accepted: boolean){
 
-        const friendShipRequest = await this.friendsRepo.findFriendShipRequest(friendshipId["friendshipId"])
-        
-        if(!friendShipRequest)
-            throw new NotFoundException("a solicitação de amizade não pode ser encontrada")
-        
-        const friendShip = new FriendShipRawDto(friendShipRequest)
-        
-        if(friendShip.receiverId === userId && friendShip.status === FriendshipStatus.PENDING){
-            return accepted === true?
-                await this.friendsRepo.acceptFriendShipRequest(friendshipId["friendshipId"])
-                :
-                await this.friendsRepo.deleteFriendShip(friendshipId["friendshipId"])
-        }
-        else
-            throw new InternalServerErrorException("Ação foi impossibilitada")
+        const friendShip = await this.friendsRepo.findFriendShipRequest(friendshipId)
 
+        if(!friendShip || (friendShip.senderId !== userId && friendShip.receiverId !== userId))
+            throw new NotFoundException("A solicitação de amizade não foi encontrada")
 
-        
+        if(friendShip.receiverId !== userId || friendShip.status !== FriendshipStatus.PENDING)
+            throw new ForbiddenException("Ação não permitida")
 
+        const result = accepted
+            ? await this.friendsRepo.acceptFriendShipRequest(friendshipId)
+            : await this.friendsRepo.deleteFriendShip(friendshipId)
 
+        this.wsService.notifyUsers([friendShip.senderId], 'friends_updated')
+        return result
     }
 }

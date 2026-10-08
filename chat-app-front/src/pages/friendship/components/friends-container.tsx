@@ -1,9 +1,12 @@
-import { Ban, MessageSquare } from "lucide-react"
+import { Ban, MessageSquare, ShieldOff, UserMinus } from "lucide-react"
 import type { FriendDto } from "../../../lib/types/friendship.types"
+import type { User } from "../../../lib/types/auth.types"
 import FriendshipSolicitationsContainer from "./friendship-solicitations-container"
-import { useBlockFriendRequest } from "../../../hooks/useFriendship"
+import { useBlockFriendRequest, useDeleteFriendship, useUnblockFriend } from "../../../hooks/useFriendship"
 import { useNavigate } from "react-router-dom"
 import { conversationService } from "../../../api/services/conversation.service"
+import { getApiErrorMessage } from "../../../lib/utils"
+import { toast } from "sonner"
 
 
 export function FriendsContainerLoadingSkeleton(){
@@ -27,22 +30,60 @@ export function FriendsContainerLoadingSkeleton(){
     )
 }
 
+function BlockedFriends({ blockedFriends }: { blockedFriends: FriendDto[] }){
+    const {mutate: unblockFriend} = useUnblockFriend()
+
+    return (
+        <div className="pt-4">
+            <h2>Bloqueados</h2>
+            {blockedFriends.map((friend) => (
+                <div 
+                    key={friend.id}
+                    className="flex items-center justify-between p-4 bg-zinc-900/20 border border-zinc-800/40 rounded-2xl"
+                >
+                    <div>
+                        <h4 className="font-semibold text-zinc-400 text-sm">{friend.name}</h4>
+                        <p className="text-xs text-zinc-500 font-medium">{friend.email}</p>
+                    </div>
+                    <button
+                        onClick={() => unblockFriend(friend.id)}
+                        title="Desbloquear (vocês deixam de ser amigos; um novo pedido será necessário)"
+                        className="p-2.5 bg-zinc-950 border border-zinc-850 text-zinc-400 rounded-xl transition-all hover:bg-zinc-800 hover:text-emerald-400"
+                    >
+                        <ShieldOff className="w-5 h-5" />
+                    </button>
+                </div>
+            ))}
+        </div>
+    )
+}
+
 type FriendsContainerProps = {
     listedFriends? : FriendDto[]
     filteredPendingFriendshipSolicitationsFromMe?: FriendDto[]
     filteredPendingFriendshipSolicitationsToMe?: FriendDto[]
+    blockedFriends: FriendDto[]
     searchTerm: string
     isLoading: boolean
-    user: any
+    user?: User
 }
 
 export default function FriendsContainer(data : FriendsContainerProps){
     const {mutate: blockFriend} = useBlockFriendRequest()
+    const {mutate: deleteFriendship} = useDeleteFriendship()
     const navigate = useNavigate();
 
     const redirectToChat = async (friendId: string) =>{
-      const conversation = await conversationService.getFriendConversation(friendId)
-      navigate(`/home/${conversation.id}`)
+      try {
+        const conversation = await conversationService.getFriendConversation(friendId)
+        navigate(`/home/${conversation.id}`)
+      } catch (error) {
+        toast.error(getApiErrorMessage(error, "Não foi possível abrir a conversa"))
+      }
+    }
+
+    const confirmAndRun = (message: string, action: () => void) => {
+      if (window.confirm(message)) action()
     }
 
     return (
@@ -77,26 +118,36 @@ export default function FriendsContainer(data : FriendsContainerProps){
 
                   <div className="flex items-center gap-2 opacity-80 group-hover:opacity-100 transition-opacity">
                     <button
-                      onClick={() => {
-                        data.user.id === friend.receiverId?
-                          redirectToChat(friend.senderId)
-                          :
-                          redirectToChat(friend.receiverId)
-                      }} 
+                      onClick={() => redirectToChat(
+                        data.user?.id === friend.receiverId ? friend.senderId : friend.receiverId
+                      )} 
                       title="Iniciar conversa"
                       className="p-2.5 bg-zinc-950 border border-zinc-850 hover:bg-emerald-600/10 hover:border-emerald-500/20 text-zinc-400 hover:text-emerald-400 rounded-xl transition-all"
                     >
                       <MessageSquare className="w-5 h-5" />
                     </button>
+                    <button
+                      onClick={() => confirmAndRun(
+                        `Desfazer a amizade com ${friend.name}?`,
+                        () => deleteFriendship({ friendshipId: friend.id, successMessage: "Amizade desfeita" })
+                      )}
+                      title="Desfazer amizade"
+                      className="p-2.5 bg-zinc-950 border border-zinc-850 text-zinc-400 rounded-xl transition-all
+                      hover:bg-zinc-800 hover:text-amber-400"
+                    >
+                      <UserMinus className="w-5 h-5" />
+                    </button>
                     <button 
-                      onClick={() => blockFriend(friend.id)}
+                      onClick={() => confirmAndRun(
+                        `Bloquear ${friend.name}? Vocês não poderão mais trocar mensagens diretas.`,
+                        () => blockFriend(friend.id)
+                      )}
                       title="Bloquear usuário"
                       className="p-2.5 bg-zinc-950 border border-zinc-850 text-zinc-400 rounded-xl transition-all
                       hover:bg-red-500/20 hover:text-red-400 hover:border-red-400
                       "
                     >
-                      <Ban className="w-5 h-5 font-red-400
-                        hover:bg-red-500/20 hover:text-red-400 hover:border-red-400" />
+                      <Ban className="w-5 h-5" />
                     </button>
                   </div>
                 </div>
@@ -109,6 +160,9 @@ export default function FriendsContainer(data : FriendsContainerProps){
             searchTerm={data.searchTerm}
             isLoading={data.isLoading}
           />
+          {!data.isLoading && data.blockedFriends.length > 0 && (
+            <BlockedFriends blockedFriends={data.blockedFriends} />
+          )}
       </div>  
     )
 }

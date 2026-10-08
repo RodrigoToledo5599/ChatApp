@@ -1,10 +1,11 @@
-import { Injectable, InternalServerErrorException, UnauthorizedException } from "@nestjs/common";
+import { Injectable, UnauthorizedException } from "@nestjs/common";
+import { randomUUID } from "crypto";
 import { AuthRepository } from "../../repository/auth.repository";
 import { LoginRequestDto } from "../../dto/login-request.dto";
 
 import argon2 from "argon2";
 import { LoginResponseDto } from "../../dto/login-response.dto";
-import { GenerateTokenUtils } from "../../utils/generate-token-utils";
+import { GenerateTokenUtils, REFRESH_TOKEN_TTL_MS } from "../../utils/generate-token-utils";
 
 
 
@@ -15,30 +16,25 @@ export class LoginUsecase {
         private generateTokenUtils: GenerateTokenUtils
     ) { }
 
-    async execute(request: LoginRequestDto) {
-        if (!request.email || !request.password) 
-            throw new UnauthorizedException('Preencha todos os campos');
+    async execute(request: LoginRequestDto): Promise<LoginResponseDto> {
+        const user = await this.repo.findUserByEmail(request.email)
 
-        var user = await this.repo.findUserByEmail(request.email)
+        // mesma mensagem para usuário inexistente e senha errada, para não revelar quais e-mails existem
+        const isPasswordValid = user ? await argon2.verify(user.password, request.password) : false;
+        if (!user || !isPasswordValid)
+            throw new UnauthorizedException('E-mail ou senha inválidos');
 
-        if (!user) 
-            throw new UnauthorizedException('Usuário não encontrado');
+        const sessionId = randomUUID();
+        const result = this.generateTokenUtils.generateAuthAndRefreshTokenForUser(user, sessionId);
+        const refreshTokenHash = await this.generateTokenUtils.generateRefreshTokenHash(result.refresh_token)
 
-        const IsPasswordValid = await argon2.verify(user.password, request.password);
-
-        if (IsPasswordValid == true) {
-            const result: LoginResponseDto = this.generateTokenUtils.generateAuthAndRefreshTokenForUser(user);
-            const refreshTokenHash: string = await this.generateTokenUtils.generateRefreshTokenHash(result.refresh_token)
-            try{
-                this.repo.saveRefreshToken(user.id, refreshTokenHash)
-            }catch(e){
-                throw new InternalServerErrorException('Internal Server error')
-            }
-            return result;
-        }
-        else{
-            throw new UnauthorizedException('Credencias Inválidas');
-        }
+        await this.repo.createSession(
+            sessionId,
+            user.id,
+            refreshTokenHash,
+            new Date(Date.now() + REFRESH_TOKEN_TTL_MS)
+        )
+        return result;
     }
 
 }

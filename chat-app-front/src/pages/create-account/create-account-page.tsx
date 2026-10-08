@@ -1,12 +1,10 @@
-"use client"
-
 import { useNavigate } from "react-router-dom"
 import { type FormEvent, useState } from "react"
 import { z } from "zod";
 import { toast } from "sonner"
 import { FormInputField } from "../../components/FormInputField"
-import axios from "axios"
 import { useCreateAccount } from "../../hooks/useAccount"
+import { getApiErrorMessage } from "../../lib/utils"
 import { UserPlus, ArrowRight } from "lucide-react"
 import type { CreateAccountRequestSend } from "../../lib/types/create-account.types";
 
@@ -77,11 +75,7 @@ export function CreateAccountPage() {
       await createAccount(params)
       router("/")
     } catch (err: unknown) {
-      let errorMessage = "Erro ao criar conta. Tente novamente."
-      if (axios.isAxiosError(err)) {
-        errorMessage = err.response?.data?.message || err.message
-      }
-      toast.error(errorMessage)
+      toast.error(getApiErrorMessage(err, "Erro ao criar conta. Tente novamente."))
     }
   }
 

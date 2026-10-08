@@ -1,14 +1,18 @@
+import 'dotenv/config'
 import { OnGatewayConnection, SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets'
 import { Namespace, Socket } from 'socket.io'
 import * as cookie from 'cookie'
 import { JwtStrategy } from '../../middleware/strategies/jwt.strategy'
+import { PrismaService } from '../prisma/prisma.service'
+
+const userRoom = (userId: string) => `user:${userId}`
 
 @WebSocketGateway({
   pingInterval: 10000,
   pingTimeout: 5000,
   allowEIO3: true,
   cors: {
-    origin: true,
+    origin: process.env.FRONT_END_URL,
     credentials: true
   },
   namespace: '/messages',
@@ -21,7 +25,8 @@ export class WebSocketMessageService implements OnGatewayConnection {
   public readonly namespace!: Namespace
   
   constructor(
-    private readonly jwtStrategy: JwtStrategy
+    private readonly jwtStrategy: JwtStrategy,
+    private readonly prisma: PrismaService
   ) {}
 
   
@@ -70,22 +75,47 @@ export class WebSocketMessageService implements OnGatewayConnection {
     })
   }
 
-  async handleConnection(client: Socket) {}
+  // cada usuário entra numa sala própria para receber avisos (novas conversas, mudanças de amizade)
+  async handleConnection(client: Socket) {
+    const userId = (client as any).user?.id;
+    if (userId)
+      client.join(userRoom(userId));
+  }
 
   @SubscribeMessage('join_chat')
-  handleJoinRoom(client: Socket, payload: { conversationId: string }) {
-    const roomName = payload.conversationId;
-    client.join(roomName);
+  async handleJoinRoom(client: Socket, payload: { conversationId: string }) {
+    const userId = (client as any).user?.id;
+    const conversationId = payload?.conversationId;
+
+    if (!userId || typeof conversationId !== 'string' || !conversationId)
+      return { ok: false, error: 'Invalid payload' };
+
+    const userOnConversation = await this.prisma.usersOnConversations.findUnique({
+      where: { userId_conversationId: { userId, conversationId } }
+    });
+
+    if (!userOnConversation)
+      return { ok: false, error: 'You are not allowed to join this conversation' };
+
+    client.join(conversationId);
+    return { ok: true };
   }
 
   @SubscribeMessage('leave_chat')
   handleLeaveRoom(client: Socket, payload: { conversationId: string }) {
-    const roomName = payload.conversationId;
-    client.leave(roomName);
+    const conversationId = payload?.conversationId;
+    if (typeof conversationId === 'string')
+      client.leave(conversationId);
   }
 
   async emitNewMessage(conversationId: string, messageData: any) {
     this.namespace.to(conversationId).emit('messages', messageData);
+  }
+
+  notifyUsers(userIds: string[], event: 'conversations_updated' | 'friends_updated') {
+    if (userIds.length === 0)
+      return;
+    this.namespace.to(userIds.map(userRoom)).emit(event);
   }
 
   async getActiveRooms(): Promise<{ rooms: string[]; totalConnections: number }> {

@@ -5,6 +5,9 @@ import { UserAuthReturnDto } from "./../../../application/auth/dto/user-auth-ret
 import argon2 from "argon2";
 import { Injectable } from "@nestjs/common";
 
+export const ACCESS_TOKEN_TTL_MS = 15 * 60 * 1000; // 15 minutos
+export const REFRESH_TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 dias
+
 @Injectable()
 export class GenerateTokenUtils{
 
@@ -12,20 +15,21 @@ export class GenerateTokenUtils{
         private jwtServ: JwtService
     ){}
 
-    generateAuthAndRefreshTokenForUser(user: Users): LoginResponseDto{
+    generateAuthAndRefreshTokenForUser(user: Users, sessionId: string): LoginResponseDto{
         const userDto = new UserAuthReturnDto(user);
         const accessToken = this.jwtServ.sign({...userDto},{
             secret: process.env.SECRET_KEY_JWT,
-            expiresIn: '15m'
+            expiresIn: ACCESS_TOKEN_TTL_MS / 1000
         })
 
         const refreshPayload = {
-            "id":userDto.id
+            "id": userDto.id,
+            "sid": sessionId
         };
 
         const refreshToken = this.jwtServ.sign({...refreshPayload},{
             secret: process.env.SECRET_KEY_REFRESH_JWT,
-            expiresIn: '7d'
+            expiresIn: REFRESH_TOKEN_TTL_MS / 1000
         })
         const result = new LoginResponseDto(
             userDto,
