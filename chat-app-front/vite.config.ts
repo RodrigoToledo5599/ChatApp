@@ -4,6 +4,12 @@ import tailwindcss from '@tailwindcss/vite'
 
 // https://vite.dev/config/
 export default defineConfig({
+  server: {
+    allowedHosts: [
+      'localhost',
+      'chatapp.local',
+    ],
+  },
   plugins: [
     react(),
     tailwindcss()

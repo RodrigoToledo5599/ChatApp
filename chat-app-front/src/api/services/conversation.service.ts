@@ -33,5 +33,13 @@ export const conversationService = {
             content: content
         })
         return data
+    },
+
+    createGroupConversation: async (title: string, memberIds: string[]) => {
+        const { data } = await http.post(`${ENDPOINT}/group`, {
+            title,
+            memberIds,
+        });
+        return data;
     }
 }

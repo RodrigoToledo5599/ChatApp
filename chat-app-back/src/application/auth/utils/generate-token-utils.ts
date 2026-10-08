@@ -1,5 +1,5 @@
 import { JwtService } from "@nestjs/jwt";
-import { Users } from "@prisma/client-db-postgres";
+import { Users } from "@prisma/client";
 import { LoginResponseDto } from "../../../application/auth/dto/login-response.dto";
 import { UserAuthReturnDto } from "./../../../application/auth/dto/user-auth-return.dto";
 import argon2 from "argon2";

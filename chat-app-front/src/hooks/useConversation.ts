@@ -1,13 +1,32 @@
-import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { TanStackKeys } from "../lib/tan-stack-keys";
 import { conversationService } from "../api/services/conversation.service";
 import type { ConversationMessagesRequestDto } from "../lib/types/conversations.types";
+import { toast } from "sonner";
 
 export function useGetUserConversations(){
     return useQuery({
         queryKey: [TanStackKeys.conversations],
         queryFn: () => conversationService.getUserConversations(),        
     })
+}
+
+export function useCreateGroupConversation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ title, memberIds }: { title: string; memberIds: string[] }) => {
+      return conversationService.createGroupConversation(title, memberIds);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [TanStackKeys.conversations] });
+      toast.success('Grupo criado com sucesso!');
+    },
+    onError: (error) => {
+      console.error('Erro ao criar grupo:', error);
+      toast.error('Não foi possível criar o grupo.');
+    },
+  });
 }
 
 export function useGetUserConversationMessages(params: ConversationMessagesRequestDto) {

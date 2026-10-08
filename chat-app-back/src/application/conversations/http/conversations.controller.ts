@@ -8,6 +8,7 @@ import { ConversationMessagesRequestDto, ConversationMessagesResponseDto, Messag
 import { SendMessageUsecase } from '../usecases/send-message.usecase';
 import { GetFriendConversationUsecase } from '../usecases/get-friend-conversation.usecase';
 import { ApiBody, ApiOkResponse, ApiParam, ApiQuery } from '@nestjs/swagger';
+import { CreateGroupConversationInputDto, CreateGroupConversationUsecase } from '../usecases/create-group-conversation.usecase';
 
 
 @UseGuards(AuthGuard)
@@ -18,7 +19,8 @@ export class ConversationsController {
         private getUserConversationsUsecase: GetUserConversationsUsecase,
         private getConversationsMessagesUsecase: GetConversationMessagesUsecase,
         private sendMessageUsecase: SendMessageUsecase,
-        private getFriendConversationUsecase: GetFriendConversationUsecase
+        private getFriendConversationUsecase: GetFriendConversationUsecase,
+        private createGroupConversationUsecase: CreateGroupConversationUsecase
     ){}
 
     @ApiOkResponse({type: [ConversationDto]})
@@ -61,5 +63,13 @@ export class ConversationsController {
         return await this.getFriendConversationUsecase.execute(user.id, param.friendId)
     }
 
+    @ApiOkResponse({type: ConversationDto})
+    @Post('group')
+    async createGroupConversation(
+        @User() user,
+        @Body() body: CreateGroupConversationInputDto
+    ) {
+        return await this.createGroupConversationUsecase.execute(user.id, body)
+    }
 
 }

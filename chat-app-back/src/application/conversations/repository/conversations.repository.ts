@@ -133,5 +133,33 @@ export class ConversationsRepository {
     });
   }
 
+  async createGroupConversation(userId: string, title: string, memberIds: string[]): Promise<Conversations | null> {
+    const uniqueMemberIds = Array.from(new Set([userId, ...memberIds]));
+
+    return await this.prisma.conversations.create({
+      data: {
+        title,
+        isGroup: true,
+        users: {
+          createMany: {
+            data: uniqueMemberIds.map((memberId) => ({ userId: memberId }))
+          }
+        }
+      },
+      include: {
+        users: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+              }
+            }
+          }
+        }
+      }
+    });
+  }
 
 }

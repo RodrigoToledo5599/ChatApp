@@ -17,6 +17,10 @@
   }
 }
 
+button:hover {
+  cursor: pointer;
+}
+
 .hero {
   position: relative;
 

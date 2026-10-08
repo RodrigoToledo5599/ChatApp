@@ -1,8 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { TanStackKeys } from "../lib/tan-stack-keys";
 import { friendshipService } from "../api/services/friendship.service";
+import axios, { AxiosError } from 'axios'
 import { toast } from "sonner";
-
 
 
 
@@ -45,14 +45,17 @@ export function useSendFriendshipRequest(){
             const data = friendshipService.sendFriendshipRequest(receiverId)
             return data
         }, 
-            
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: [TanStackKeys.friends]})
             toast.info("Pedido de amizade enviado com sucesso") 
         },
         onError: (error) => {
-           console.error("Erro ao enviar solicitação:", error)
-           toast.error("erro ao se comunicar com o servidor")
+            console.error("Erro ao enviar solicitação:", error)
+            if (axios.isAxiosError(error) && error.response?.status === 409) {
+                toast.error("Pedido de amizade já enviado")
+            } else {
+                toast.error("Erro ao se comunicar com o servidor")
+            }
         }
     })
 }

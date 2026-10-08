@@ -42,7 +42,6 @@ export default function FriendsContainer(data : FriendsContainerProps){
 
     const redirectToChat = async (friendId: string) =>{
       const conversation = await conversationService.getFriendConversation(friendId)
-      console.log(conversation)
       navigate(`/home/${conversation.id}`)
     }
 

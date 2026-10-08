@@ -1,4 +1,4 @@
-import { Users } from "@prisma/client-db-postgres";
+import { Users } from "@prisma/client";
 
 export class AccountCreateResponseDto{
     id: string

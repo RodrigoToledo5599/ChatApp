@@ -5,6 +5,7 @@ import { GetUserConversationsUsecase } from './usecases/get-user-conversations.u
 import { GetConversationMessagesUsecase } from './usecases/get-conversation-messages.usecase';
 import { SendMessageUsecase } from './usecases/send-message.usecase';
 import { GetFriendConversationUsecase } from './usecases/get-friend-conversation.usecase';
+import { CreateGroupConversationUsecase } from './usecases/create-group-conversation.usecase';
 
 @Module({
   controllers: [ConversationsController],
@@ -13,7 +14,8 @@ import { GetFriendConversationUsecase } from './usecases/get-friend-conversation
     GetUserConversationsUsecase,
     GetConversationMessagesUsecase,
     SendMessageUsecase,
-    GetFriendConversationUsecase
+    GetFriendConversationUsecase,
+    CreateGroupConversationUsecase
   ]
 })
 export class ConversationsModule {}
