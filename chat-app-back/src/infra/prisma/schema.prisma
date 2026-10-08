@@ -23,6 +23,7 @@ model Users {
   
   conversations       UsersOnConversations[]
   sessions            Sessions[]
+  attachments         Attachments[]
 }
 
 // uma linha por dispositivo logado; o refresh token carrega o id da sessão
@@ -63,7 +64,8 @@ model Conversations {
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
 
-  users     UsersOnConversations[]
+  users       UsersOnConversations[]
+  attachments Attachments[]
 }
 
 model UsersOnConversations {
@@ -76,6 +78,33 @@ model UsersOnConversations {
   conversation   Conversations @relation(fields: [conversationId], references: [id], onDelete: Cascade)
 
   @@id([userId, conversationId]) 
+}
+
+// arquivo enviado direto do browser para o bucket; fica PENDING até ser anexado a uma mensagem
+model Attachments {
+  id             String           @id @default(uuid())
+  // caminho do objeto no bucket, gerado pelo servidor
+  key            String           @unique
+  uploaderId     String
+  conversationId String
+  mimeType       String
+  size           Int
+  width          Int
+  height         Int
+  status         AttachmentStatus @default(PENDING)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  uploader     Users         @relation(fields: [uploaderId], references: [id], onDelete: Cascade)
+  conversation Conversations @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  // usado pela limpeza de uploads abandonados
+  @@index([status, createdAt])
+}
+
+enum AttachmentStatus {
+  PENDING
+  READY
 }
 
 enum FriendshipStatus {

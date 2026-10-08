@@ -1,4 +1,4 @@
-import type { ConversationMessagesRequestDto, ConversationMessagesResponseDto, ConversationReturn } from "../../lib/types/conversations.types"
+import type { ConversationMessagesRequestDto, ConversationMessagesResponseDto, ConversationReturn, MessageDto } from "../../lib/types/conversations.types"
 import { http } from "../http"
 
 
@@ -23,10 +23,11 @@ export const conversationService = {
         return data
     },
 
-    sendMessage: async (conversationId: string, content: string) => {
-        const {data} = await http.post(ENDPOINT+`/messages`,{
+    sendMessage: async (conversationId: string, content: string, attachmentId?: string): Promise<MessageDto> => {
+        const {data} = await http.post<MessageDto>(ENDPOINT+`/messages`,{
             conversationId: conversationId, 
-            content: content
+            content: content,
+            attachmentId: attachmentId
         })
         return data
     },

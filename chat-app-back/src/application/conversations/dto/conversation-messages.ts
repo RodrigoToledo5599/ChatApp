@@ -1,19 +1,33 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger"
 import { Transform, Type } from "class-transformer"
-import { IsInt, IsNotEmpty, IsOptional, IsString, Max, MaxLength, Min } from "class-validator"
+import { IsInt, IsNotEmpty, IsOptional, IsString, Max, MaxLength, Min, ValidateIf } from "class-validator"
 import { IsId } from "../../../middleware/decorators/is-id.decorator"
 
 export const MAX_MESSAGE_LENGTH = 2000
 export const MAX_MESSAGES_PAGE_SIZE = 50
+
+export class MessageAttachmentDto {
+  id: string
+  mimeType: string
+  size: number
+  width: number
+  height: number
+  // só existe no Mongo; nunca vai para o cliente
+  key?: string
+  // url assinada de leitura, gerada a cada resposta (o bucket é privado)
+  url?: string
+}
 
 export class MessageDto {
   _id?: any
   conversationId: string
   userId:string
   userName:string
+  // pode ser vazio quando a mensagem tem imagem (legenda opcional)
   content:string
   createdAt:Date
   updatedAt:Date
+  attachment?: MessageAttachmentDto
 
   constructor(
     conversationId: string,
@@ -22,7 +36,8 @@ export class MessageDto {
     content:string,
     createdAt:Date,
     updatedAt:Date,
-    _id?: any
+    _id?: any,
+    attachment?: MessageAttachmentDto
   ){
     this.conversationId = conversationId
     this.userId = userId
@@ -31,6 +46,8 @@ export class MessageDto {
     this.createdAt = createdAt
     this.updatedAt = updatedAt
     this._id = _id
+    if (attachment)
+      this.attachment = attachment
   }
 
 }
@@ -41,19 +58,29 @@ export class MessageDtoRequest {
   @IsId()
   conversationId: string
 
-  @ApiProperty()
+  // com imagem o texto vira legenda e pode ficar vazio
+  @ApiPropertyOptional()
   @Transform(({ value }) => typeof value === 'string' ? value.trim() : value)
+  @ValidateIf((o) => !o.attachmentId || !!o.content)
   @IsString()
   @IsNotEmpty({ message: 'A mensagem não pode ser vazia' })
   @MaxLength(MAX_MESSAGE_LENGTH, { message: `A mensagem pode ter no máximo ${MAX_MESSAGE_LENGTH} caracteres` })
   content: string
 
+  // id devolvido por POST /attachments/upload-url, depois do upload para o bucket
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsId()
+  attachmentId?: string
+
   constructor(
     conversationId: string,
     content: string,
+    attachmentId?: string,
   ){
     this.conversationId = conversationId
     this.content = content
+    this.attachmentId = attachmentId
   }
 
 }

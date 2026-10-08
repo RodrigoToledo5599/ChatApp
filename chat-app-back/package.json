@@ -21,14 +21,18 @@
     "prisma:postgres:generate": "prisma generate --schema=./src/infra/prisma/schema.prisma",
     "prisma:postgres:migrate": "prisma migrate dev --schema=./src/infra/prisma/schema.prisma",
     "prisma:postgres:deploy": "prisma migrate deploy --schema=./src/infra/prisma/schema.prisma",
-    "seed-postgres": "ts-node ./src/infra/seed.ts"
+    "seed-postgres": "ts-node ./src/infra/seed.ts",
+    "storage:setup": "ts-node ./src/infra/storage/setup-bucket.ts"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1147.0",
+    "@aws-sdk/s3-request-presigner": "^3.1147.0",
     "@nestjs/common": "^11.1.24",
     "@nestjs/core": "^11.0.1",
     "@nestjs/jwt": "^11.0.2",
     "@nestjs/platform-express": "^11.0.1",
     "@nestjs/platform-socket.io": "^11.1.27",
+    "@nestjs/schedule": "^12.0.2",
     "@nestjs/swagger": "^11.4.4",
     "@nestjs/throttler": "^6.7.1",
     "@nestjs/websockets": "^11.1.27",

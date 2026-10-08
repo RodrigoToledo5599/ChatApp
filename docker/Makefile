@@ -27,9 +27,15 @@ seed-db:
 up-redis:
 	docker compose up redis -d
 
+up-storage:
+	docker compose up storage -d
+	@until curl -s -o /dev/null localhost:9000; do sleep 1; done
+	cd ../chat-app-back && $(NODE) npm run storage:setup
+
 
 do-it-all-db:
 	@make up-redis
+	@make up-storage
 	@make up-db
 	@make prisma-generate
 	@make create-migrations

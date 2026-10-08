@@ -36,14 +36,26 @@ export interface ConversationMessagesResponseDto {
   nextCursor?: string
 }
 
+export interface MessageAttachment {
+  id: string
+  mimeType: string
+  size: number
+  width: number
+  height: number
+  // url assinada e temporária (o bucket é privado)
+  url: string
+}
+
 export interface MessageDto {
   _id: string
   conversationId:string
   userId:string
   userName:string
+  // vazio quando a mensagem é só uma imagem
   content:string
   createdAt:string
   updatedAt:string
+  attachment?: MessageAttachment
 }
 
 export interface ConversationMessagesRequestDto {
@@ -52,3 +64,17 @@ export interface ConversationMessagesRequestDto {
   cursor?: string
 }
 
+// Attachments ===========================================================================================================================
+
+export interface UploadUrlRequestDto {
+  conversationId: string
+  mimeType: string
+  size: number
+  width: number
+  height: number
+}
+
+export interface UploadUrlResponseDto {
+  attachmentId: string
+  uploadUrl: string
+}

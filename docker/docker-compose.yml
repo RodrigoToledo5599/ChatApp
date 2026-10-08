@@ -20,3 +20,21 @@ services:
     command: redis-server --appendonly yes --stop-writes-on-bgsave-error no
     ports:
       - '6379:6379'
+
+  # storage compatível com S3 para desenvolvimento (em produção: Cloudflare R2)
+  # API em :9000, console web em :9001
+  storage:
+    container_name: storage-chat-app
+    image: rustfs/rustfs:latest
+    environment:
+      RUSTFS_ACCESS_KEY: chatapp
+      RUSTFS_SECRET_KEY: chatapp-secret
+      RUSTFS_CONSOLE_ENABLE: "true"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - storage-data:/data
+
+volumes:
+  storage-data:

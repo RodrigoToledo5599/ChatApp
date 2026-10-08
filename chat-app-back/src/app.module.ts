@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerModule } from '@nestjs/throttler';
+import { ScheduleModule } from '@nestjs/schedule';
 import { HttpThrottlerGuard } from './middleware/guards/http-throttler.guard';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -13,17 +14,23 @@ import { FriendsModule } from './application/friends/friends.module';
 import { ConversationsModule } from './application/conversations/conversations.module';
 import { UsersModule } from './application/users/users.module';
 import { WebsocketModule } from './infra/websocket/websocket.module';
+import { StorageModule } from './infra/storage/storage.module';
+import { AttachmentsModule } from './application/attachments/attachments.module';
 
 @Module({
   imports: [
     MongoModule,
     PrismaModule,
+    StorageModule,
     MiddlewareModule,
     AuthModule,
     UsersModule,
     FriendsModule,
     ConversationsModule,
+    AttachmentsModule,
     WebsocketModule,
+    // jobs agendados (limpeza de anexos abandonados)
+    ScheduleModule.forRoot(),
     JwtModule.register({
       secret: process.env.SECRET_KEY_JWT,
       global: true,

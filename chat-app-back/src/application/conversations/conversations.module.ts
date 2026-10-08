@@ -6,8 +6,10 @@ import { GetConversationMessagesUsecase } from './usecases/get-conversation-mess
 import { SendMessageUsecase } from './usecases/send-message.usecase';
 import { GetFriendConversationUsecase } from './usecases/get-friend-conversation.usecase';
 import { CreateGroupConversationUsecase } from './usecases/create-group-conversation.usecase';
+import { AttachmentsModule } from '../attachments/attachments.module';
 
 @Module({
+  imports: [AttachmentsModule],
   controllers: [ConversationsController],
   providers:[
     ConversationsRepository,

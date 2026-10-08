@@ -2,6 +2,8 @@ import { BadRequestException, ForbiddenException, Injectable } from "@nestjs/com
 import { ObjectId } from "mongodb";
 import { ConversationsRepository } from "../repository/conversations.repository";
 import { ConversationMessagesRequestDto, ConversationMessagesResponseDto, MessageDto } from "../dto/conversation-messages";
+import { StorageService } from "../../../infra/storage/storage.service";
+import { signMessageAttachment } from "../utils/sign-message-attachment";
 
 
 // cursor = "<createdAt ISO>_<_id da mensagem>"
@@ -21,7 +23,8 @@ function decodeCursor(cursor: string): { createdAt: Date, id: ObjectId } {
 export class GetConversationMessagesUsecase{
 
     constructor(
-        private  conversationsRepo: ConversationsRepository
+        private  conversationsRepo: ConversationsRepository,
+        private storage: StorageService,
     ){}
 
     async execute(userId: string,params: ConversationMessagesRequestDto):Promise<ConversationMessagesResponseDto>{
@@ -33,17 +36,18 @@ export class GetConversationMessagesUsecase{
 
         const cursor = params.cursor ? decodeCursor(params.cursor) : undefined
         const conversations = await this.conversationsRepo.getConversationMessages(params.conversationId, params.limit, cursor)
-        const messages: MessageDto[] = conversations.map((item)=>{
-            return new MessageDto(
+        const messages: MessageDto[] = await Promise.all(conversations.map((item)=>{
+            return signMessageAttachment(this.storage, new MessageDto(
                 item.conversationId,
                 item.userId,
                 item.userName,
                 item.content,
                 item.createdAt,
                 item.updatedAt,
-                item._id
-            )
-        })
+                item._id,
+                item.attachment
+            ))
+        }))
 
         // página incompleta = não há mensagens mais antigas
         const nextCursor = messages.length === params.limit
