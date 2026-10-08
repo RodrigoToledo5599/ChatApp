@@ -12,7 +12,9 @@ model Users {
   name      String
   email     String   @unique
   phone     String?  @unique
-  password  String
+  // nulo para contas criadas só pelo Google
+  password  String?
+  googleId  String?  @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

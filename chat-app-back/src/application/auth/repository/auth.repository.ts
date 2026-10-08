@@ -13,6 +13,25 @@ export class AuthRepository {
     }
 
 
+    async findUserByGoogleId(googleId: string): Promise<Users | null> {
+        return await this.prisma.users.findUnique({
+            where: { googleId },
+        });
+    }
+
+    async linkGoogleAccount(userId: string, googleId: string): Promise<Users> {
+        return await this.prisma.users.update({
+            where: { id: userId },
+            data: { googleId },
+        });
+    }
+
+    async createGoogleUser(name: string, email: string, googleId: string): Promise<Users> {
+        return await this.prisma.users.create({
+            data: { name, email, googleId },
+        });
+    }
+
     async findUserById(id: string): Promise<Users | null> {
         return this.prisma.users.findFirst({
             where: {

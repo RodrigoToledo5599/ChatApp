@@ -7,6 +7,7 @@ import FriendshipPage from './pages/friendship/friendship-page';
 import { CreateAccountPage } from './pages/create-account/create-account-page';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { Toaster } from 'sonner';
+import { GoogleOAuthProvider } from '@react-oauth/google';
 
 const queryClient = new QueryClient()
 
@@ -19,6 +20,7 @@ function App() {
         theme="dark" 
         closeButton
       />
+      <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID ?? ""}>
       <BrowserRouter>
         <QueryClientProvider client={queryClient}>
             <Routes>
@@ -35,6 +37,7 @@ function App() {
             </Routes>
         </QueryClientProvider>
       </BrowserRouter>
+      </GoogleOAuthProvider>
     </>
   )
 }

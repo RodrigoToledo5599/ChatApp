@@ -6,13 +6,25 @@ CREATE TABLE "Users" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "email" TEXT NOT NULL,
-    "phone" TEXT NOT NULL,
-    "password" TEXT NOT NULL,
-    "refresh" TEXT,
+    "phone" TEXT,
+    "password" TEXT,
+    "googleId" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "Users_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Sessions" (
+    "id" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "refreshHash" TEXT NOT NULL,
+    "expiresAt" TIMESTAMP(3) NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Sessions_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -21,6 +33,7 @@ CREATE TABLE "Friendship" (
     "senderId" TEXT NOT NULL,
     "receiverId" TEXT NOT NULL,
     "status" "FriendshipStatus" NOT NULL DEFAULT 'PENDING',
+    "blockedById" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -31,8 +44,9 @@ CREATE TABLE "Friendship" (
 CREATE TABLE "Conversations" (
     "id" TEXT NOT NULL,
     "title" TEXT,
+    "isGroup" BOOLEAN NOT NULL DEFAULT false,
+    "directKey" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "isGroup" BOOLEAN DEFAULT false,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "Conversations_pkey" PRIMARY KEY ("id")
@@ -54,7 +68,19 @@ CREATE UNIQUE INDEX "Users_email_key" ON "Users"("email");
 CREATE UNIQUE INDEX "Users_phone_key" ON "Users"("phone");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "Users_googleId_key" ON "Users"("googleId");
+
+-- CreateIndex
+CREATE INDEX "Sessions_userId_idx" ON "Sessions"("userId");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "Friendship_senderId_receiverId_key" ON "Friendship"("senderId", "receiverId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Conversations_directKey_key" ON "Conversations"("directKey");
+
+-- AddForeignKey
+ALTER TABLE "Sessions" ADD CONSTRAINT "Sessions_userId_fkey" FOREIGN KEY ("userId") REFERENCES "Users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Friendship" ADD CONSTRAINT "Friendship_senderId_fkey" FOREIGN KEY ("senderId") REFERENCES "Users"("id") ON DELETE CASCADE ON UPDATE CASCADE;

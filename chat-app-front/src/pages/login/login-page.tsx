@@ -6,6 +6,7 @@ import { FormInputField } from "../../components/FormInputField"
 import type { LoginParams } from "../../lib/types/auth.types"
 import { useLogin } from "../../hooks/useAuth"
 import { getApiErrorMessage } from "../../lib/utils"
+import { GoogleLoginButton } from "../../components/GoogleLoginButton"
 import { MessageSquareCode, ArrowRight } from "lucide-react"
 
 export function LoginPage() {
@@ -120,6 +121,7 @@ export function LoginPage() {
               )}
             </button>
           </form>
+          <GoogleLoginButton />
         </div>
 
         <div className="flex flex-col items-center gap-3 text-sm pt-2">

@@ -20,7 +20,8 @@ export class LoginUsecase {
         const user = await this.repo.findUserByEmail(request.email)
 
         // mesma mensagem para usuário inexistente e senha errada, para não revelar quais e-mails existem
-        const isPasswordValid = user ? await argon2.verify(user.password, request.password) : false;
+        // contas criadas só pelo Google não têm senha e só entram pelo Google
+        const isPasswordValid = user?.password ? await argon2.verify(user.password, request.password) : false;
         if (!user || !isPasswordValid)
             throw new UnauthorizedException('E-mail ou senha inválidos');
 

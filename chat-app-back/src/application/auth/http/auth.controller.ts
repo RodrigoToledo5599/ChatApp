@@ -3,6 +3,8 @@ import express from 'express';
 import { Throttle } from '@nestjs/throttler';
 import { LoginRequestDto } from './../dto/login-request.dto';
 import { LoginUsecase } from './../usecases/login/login.usecase';
+import { GoogleLoginUsecase } from '../usecases/google-login/google-login.usecase';
+import { GoogleLoginRequestDto } from '../dto/google-login-request.dto';
 import { TokenRefreshUseCase } from '../usecases/token-refresh/token-refresh.usecase';
 import { LogoutUsecase } from '../usecases/logout/logout.usecase';
 import { ApiBody, ApiOkResponse } from '@nestjs/swagger';
@@ -30,6 +32,7 @@ export class AuthController {
 
     constructor(
         private readonly loginUseCase: LoginUsecase,
+        private readonly googleLoginUseCase: GoogleLoginUsecase,
         private readonly tokenRefreshUseCase: TokenRefreshUseCase,
         private readonly logoutUseCase: LogoutUsecase
     ) { }
@@ -48,6 +51,19 @@ export class AuthController {
         @Body() params: LoginRequestDto, @Res({ passthrough: true }) res: express.Response) :Promise<AuthUserResponseDto> {
 
         const loginResponse = await this.loginUseCase.execute(params);
+        this.setAuthCookies(res, loginResponse.access_token, loginResponse.refresh_token);
+        return new AuthUserResponseDto(loginResponse.user);
+    }
+
+    @Throttle({ default: { limit: 5, ttl: 60_000 } })
+    @ApiOkResponse({type: AuthUserResponseDto})
+    @ApiBody({type: GoogleLoginRequestDto})
+    @HttpCode(200)
+    @Post('google')
+    async googleLogin(
+        @Body() params: GoogleLoginRequestDto, @Res({ passthrough: true }) res: express.Response) :Promise<AuthUserResponseDto> {
+
+        const loginResponse = await this.googleLoginUseCase.execute(params.credential);
         this.setAuthCookies(res, loginResponse.access_token, loginResponse.refresh_token);
         return new AuthUserResponseDto(loginResponse.user);
     }

@@ -5,6 +5,7 @@ import { toast } from "sonner"
 import { FormInputField } from "../../components/FormInputField"
 import { useCreateAccount } from "../../hooks/useAccount"
 import { getApiErrorMessage } from "../../lib/utils"
+import { GoogleLoginButton } from "../../components/GoogleLoginButton"
 import { UserPlus, ArrowRight } from "lucide-react"
 import type { CreateAccountRequestSend } from "../../lib/types/create-account.types";
 
@@ -158,6 +159,7 @@ export function CreateAccountPage() {
               )}
             </button>
           </form>
+          <GoogleLoginButton text="signup_with" />
         </div>
 
         <div className="flex flex-col items-center gap-3 text-sm pt-1">

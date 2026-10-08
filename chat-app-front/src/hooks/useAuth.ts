@@ -21,6 +21,19 @@ export function useLogin() {
   });
 }
 
+export function useLoginWithGoogle() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (credential: string) => authService.loginWithGoogle(credential),
+    onSuccess: (data :UserLoginReturn) =>{
+        socket.disconnect()
+        queryClient.clear()
+        queryClient.setQueryData([TanStackKeys.user], data.user);
+    }
+  });
+}
+
 export function useLogout() {
   const queryClient = useQueryClient()
   const navigate = useNavigate()

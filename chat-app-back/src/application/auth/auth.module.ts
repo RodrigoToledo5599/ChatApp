@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { LoginUsecase } from './usecases/login/login.usecase';
+import { GoogleLoginUsecase } from './usecases/google-login/google-login.usecase';
 import { AuthController } from './http/auth.controller';
 import { TokenRefreshUseCase } from './usecases/token-refresh/token-refresh.usecase';
 import { LogoutUsecase } from './usecases/logout/logout.usecase';
@@ -11,6 +12,7 @@ import { GenerateTokenUtils } from './utils/generate-token-utils';
     controllers: [AuthController],
     providers: [
         LoginUsecase,
+        GoogleLoginUsecase,
         TokenRefreshUseCase,
         LogoutUsecase,
         GenerateTokenUtils,

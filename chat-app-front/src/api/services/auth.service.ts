@@ -13,6 +13,11 @@ export const authService = {
         return data
     },
 
+    loginWithGoogle: async (credential: string) : Promise<UserLoginReturn> => {
+        const {data} = await http.post<UserLoginReturn>(ENDPOINT+"/google", { credential });
+        return data
+    },
+
     getMe: async () : Promise<User> => {
         const {data} = await http.get<User>(ENDPOINT+"/me");
         return data
